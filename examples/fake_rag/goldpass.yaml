@@ -1,0 +1,9 @@
+# goldpass config for the fake RAG service. Start it first:
+#   python examples/fake_rag/server.py --port 8765
+golden: golden.jsonl
+thresholds: thresholds.yaml
+out: goldpass-results/run.json
+system:
+  type: http
+  url: http://127.0.0.1:8765/ask
+  # the service already speaks goldpass's record format, so no `fields` mapping is needed

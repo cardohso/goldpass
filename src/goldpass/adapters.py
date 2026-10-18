@@ -61,8 +61,19 @@ class HttpAdapter:
         )
         self._sleep = sleep
         self._log = log
+        self._clock = time.monotonic
+        self._last: float | None = None
+
+    def _pace(self) -> None:
+        """Keep at least min_interval_s between request starts (e.g. 12 s for 5/minute)."""
+        if self._last is not None and self.system.min_interval_s > 0:
+            wait = self._last + self.system.min_interval_s - self._clock()
+            if wait > 0:
+                self._sleep(wait)
+        self._last = self._clock()
 
     def _call(self, body: Any) -> httpx.Response:
+        self._pace()
         try:
             if self.system.method == "GET":
                 resp = self._client.get(self.system.url, params=body)

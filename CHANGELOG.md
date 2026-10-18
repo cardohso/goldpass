@@ -58,3 +58,13 @@ All notable changes to this project are documented here. The format follows
 - `goldpass run --thresholds/--baseline/--summary` (or `thresholds:`/`baseline:` in the
   config) exits 1 when the gate fails. `goldpass compare RESULTS BASELINE` re-gates saved
   runs without calling anything.
+- `min_interval_s` for HTTP systems: paces requests for rate-limited endpoints.
+- Composite GitHub Action (`action.yml`): runs goldpass from the action's own source with uv,
+  writes the report to the job summary, persists the judge cache with actions/cache, and
+  exposes `passed`, `exit-code`, `results` and `markdown` outputs. Inputs reach the script
+  only through environment variables. `--json-paths` tells wrappers where results were written.
+- Examples: a synthetic fake RAG service (standard library only) with a `regressed` mode that
+  the gate must catch, and the rail-regulation-rag recorded run with its thresholds and a
+  baseline, plus a manual-only workflow that gates the live rail demo.
+- e2e workflow: runs the Action against the fake service (good must pass, regressed must fail
+  with exit 1) and on the recorded rail run.

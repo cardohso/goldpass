@@ -140,8 +140,9 @@ def test_gating_judge_failing_everywhere_is_a_runtime_error(
 
 
 def test_replay_without_context_text_skips_faithfulness(project: Path, llm: FakeLLM) -> None:
-    rail = Path(__file__).parent / "fixtures" / "rail"
-    argv = ["run", "--golden", str(rail / "golden.jsonl"), "--replay", str(rail / "records.json"),
+    rail = Path(__file__).parents[1] / "examples" / "rail"
+    records = rail / "recorded" / "records.json"
+    argv = ["run", "--golden", str(rail / "golden.jsonl"), "--replay", str(records),
             "--generator", "gemini-3.5-flash-lite"]  # fmt: skip
     assert main(argv) == ExitCode.OK
     r = result(project)

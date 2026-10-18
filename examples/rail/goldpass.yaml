@@ -1,0 +1,9 @@
+# The judge-free half of the rail-regulation-rag eval gate, on a recorded CI run.
+# No network and no keys: answers come from recorded/records.json.
+golden: golden.jsonl
+thresholds: thresholds.yaml
+baseline: baseline.json
+out: goldpass-results/recorded.json
+system:
+  type: replay
+  path: recorded/records.json

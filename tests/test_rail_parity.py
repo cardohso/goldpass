@@ -10,7 +10,7 @@ from goldpass.golden import load_golden
 from goldpass.metrics import aggregate, by_document, by_tag, score_item
 from goldpass.record import Record
 
-FIXTURE = Path(__file__).parent / "fixtures" / "rail"
+FIXTURE = Path(__file__).parents[1] / "examples" / "rail"
 
 # rail metric name -> goldpass metric name
 RENAMED = {
@@ -26,7 +26,7 @@ RENAMED = {
 @pytest.fixture(scope="module")
 def run() -> dict[str, Any]:
     items = load_golden(FIXTURE / "golden.jsonl")
-    raw = json.loads((FIXTURE / "records.json").read_text(encoding="utf-8"))["records"]
+    raw = json.loads((FIXTURE / "recorded" / "records.json").read_text(encoding="utf-8"))["records"]
     records = {
         r["id"]: Record(
             r["id"],
@@ -38,7 +38,7 @@ def run() -> dict[str, Any]:
         for r in raw
     }
     scores = [score_item(i, records[i.id]) for i in items]
-    expected = json.loads((FIXTURE / "expected.json").read_text(encoding="utf-8"))
+    expected = json.loads((FIXTURE / "recorded" / "expected.json").read_text(encoding="utf-8"))
     return {"scores": scores, "expected": expected}
 
 

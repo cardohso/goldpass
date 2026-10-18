@@ -1,0 +1,11 @@
+# Gate for the fake RAG service. Set from what the "good" mode must do, not tuned to pass.
+metrics:
+  recall_at_k:       {min: 0.90}   # gold passages reach the generator
+  context_precision: {min: 0.90}   # and are ranked first
+  grounding:         {min: 0.90}   # answers cite only the documents the question is about
+  answered_rate:     {min: 0.90}   # answerable questions are answered
+  refusal_rate:      {min: 1.00}   # questions the docs cannot answer are refused
+  errors:            {max: 0}
+tags:
+  wrong-document:                  # a near-identical passage exists in an outdated document
+    grounding:       {min: 1.00}

@@ -17,14 +17,15 @@ from goldpass.gate import (
 )
 from goldpass.report import render
 
-RAIL = Path(__file__).parent / "fixtures" / "rail"
+RAIL = Path(__file__).parents[1] / "examples" / "rail"
+RECORDS = RAIL / "recorded" / "records.json"
 
 
 @pytest.fixture(scope="module")
 def rail(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
     """Results of replaying the rail CI run (the parity fixture), as goldpass writes them."""
     out = tmp_path_factory.mktemp("rail") / "run.json"
-    argv = ["run", "--golden", str(RAIL / "golden.jsonl"), "--replay", str(RAIL / "records.json"),
+    argv = ["run", "--golden", str(RAIL / "golden.jsonl"), "--replay", str(RECORDS),
             "--out", str(out)]  # fmt: skip
     assert main(argv) == ExitCode.OK
     data: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
@@ -203,7 +204,7 @@ def test_run_gate_pass_and_fail(tmp_path: Path) -> None:
     th = tmp_path / "t.yaml"
     th.write_text(THRESHOLDS, encoding="utf-8")
     summary = tmp_path / "summary.md"
-    base = ["run", "--golden", str(RAIL / "golden.jsonl"), "--replay", str(RAIL / "records.json"),
+    base = ["run", "--golden", str(RAIL / "golden.jsonl"), "--replay", str(RECORDS),
             "--thresholds", str(th), "--summary", str(summary)]  # fmt: skip
     assert main([*base, "--out", str(tmp_path / "a.json")]) == ExitCode.OK
     assert (tmp_path / "a.md").read_text("utf-8").startswith("## goldpass: PASSED ✅")
@@ -217,7 +218,13 @@ def test_run_gate_pass_and_fail(tmp_path: Path) -> None:
 def test_missing_baseline_is_skipped_with_a_note(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    argv = ["run", "--golden", str(RAIL / "golden.jsonl"), "--replay", str(RAIL / "records.json")]
+    argv = [
+        "run",
+        "--golden",
+        str(RAIL / "golden.jsonl"),
+        "--replay",
+        str(RECORDS),
+    ]
     argv += ["--baseline", str(tmp_path / "none.json"), "--out", str(tmp_path / "r.json")]
     assert main(argv) == ExitCode.OK
     assert "comparison skipped" in capsys.readouterr().out

@@ -1,0 +1,14 @@
+# Manual check of the LIVE rail demo (run by .github/workflows/rail-live.yml on demand only).
+# Its /ask returns answers, refusals and citations but not the retrieved passages, so the
+# retrieval metrics are skipped and only grounding, answered and refusal rates are gated.
+golden: golden.jsonl
+thresholds: thresholds-live.yaml
+out: goldpass-results/live.json
+system:
+  type: http
+  url: https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io/ask
+  timeout_s: 120
+  min_interval_s: 13          # the demo allows 5 questions per minute per client
+  retry: {attempts: 6, backoff_s: 15, max_wait_s: 90}
+  # The demo's response already uses goldpass's field names (answer, refused, citations with
+  # passage_id and doc_id), so no `fields` mapping is needed.

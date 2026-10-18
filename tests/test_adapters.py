@@ -169,3 +169,28 @@ def test_replay_with_mapping(tmp_path: Path) -> None:
     fields = FieldMap(id="qid", contexts="hits", passage=PassageFields(id="passage_id"))
     r = ReplayAdapter(ReplaySystem(path, fields)).ask(ITEM)
     assert r == Record("q1", "x", contexts=(Passage("p1"),))
+
+
+class FakeClock:
+    def __init__(self) -> None:
+        self.now = 100.0
+        self.waits: list[float] = []
+
+    def __call__(self) -> float:
+        return self.now
+
+    def sleep(self, seconds: float) -> None:
+        self.waits.append(seconds)
+        self.now += seconds
+
+
+def test_min_interval_paces_requests() -> None:
+    clock = FakeClock()
+    server = Server(*(httpx.Response(200, json=OK_BODY) for _ in range(3)))
+    system = HttpSystem(url="http://rag.test/ask", min_interval_s=12.0)
+    a = HttpAdapter(system, httpx.MockTransport(server), sleep=clock.sleep)
+    a._clock = clock
+    for _ in range(3):
+        a.ask(ITEM)
+        clock.now += 2.0  # each request takes 2 s
+    assert clock.waits == [10.0, 10.0]

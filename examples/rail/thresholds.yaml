@@ -1,0 +1,15 @@
+# The rail repo's thresholds (eval/thresholds.yaml), set before its first real run.
+# Its judge metrics (faithfulness >= 0.80, answer relevancy >= 0.70) need answer and passage
+# texts, which recorded/records.json leaves out, so only the judge-free ones are here.
+metrics:
+  context_precision: {min: 0.50}   # gold passages ranked high among those given to the generator
+  recall_at_k:       {min: 0.70}   # rail's context_recall: gold passages reach the generator
+  grounding:         {min: 0.90}   # answers cite only the documents the question is about
+  answered_rate:     {min: 0.80}   # at most ~3 of 16 answerable questions wrongly refused
+  refusal_rate:      {min: 0.75}   # at least 3 of 4 unanswerable questions refused
+  errors:            {max: 0}
+tags:
+  wrong-document:
+    grounding:       {min: 0.90}
+baseline:
+  max_drop: 0.05

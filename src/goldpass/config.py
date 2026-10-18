@@ -32,6 +32,7 @@ class HttpSystem:
     headers: Mapping[str, str] = field(default_factory=dict)
     body: Any = field(default_factory=lambda: {"question": "{question}"})
     timeout_s: float = 60.0
+    min_interval_s: float = 0.0  # pause between requests, for rate-limited endpoints
     fields: FieldMap = field(default_factory=FieldMap)
     retry: RetryPolicy = field(default_factory=RetryPolicy)
 
@@ -226,7 +227,17 @@ def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
         d = _section(
             data,
             where,
-            {"type", "url", "method", "headers", "body", "timeout_s", "fields", "retry"},
+            {
+                "type",
+                "url",
+                "method",
+                "headers",
+                "body",
+                "timeout_s",
+                "min_interval_s",
+                "fields",
+                "retry",
+            },
         )
         if "url" not in d:
             raise ConfigError(f"{where}.url: required for an http system")
@@ -237,6 +248,7 @@ def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
             headers={str(k): _expand(str(v), f"{where}.headers.{k}") for k, v in headers.items()},
             body=d.get("body", {"question": "{question}"}),
             timeout_s=float(_typed(d, "timeout_s", where, (int, float), 60.0)),
+            min_interval_s=float(_typed(d, "min_interval_s", where, (int, float), 0.0)),
             fields=_fields(d.get("fields"), f"{where}.fields"),
             retry=_retry(d.get("retry"), f"{where}.retry"),
         )

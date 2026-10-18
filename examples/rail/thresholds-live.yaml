@@ -1,0 +1,9 @@
+# Same bar as thresholds.yaml, minus what the live API cannot report (retrieved passages).
+metrics:
+  grounding:     {min: 0.90}
+  answered_rate: {min: 0.80}
+  refusal_rate:  {min: 0.75}
+  errors:        {max: 0}
+tags:
+  wrong-document:
+    grounding:   {min: 0.90}

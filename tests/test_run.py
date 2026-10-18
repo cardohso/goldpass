@@ -8,18 +8,21 @@ import pytest
 
 from goldpass.cli import ExitCode, main
 
-RAIL = Path(__file__).parent / "fixtures" / "rail"
+RAIL = Path(__file__).parents[1] / "examples" / "rail"
+RECORDS = RAIL / "recorded" / "records.json"
 GOLDEN = RAIL / "golden.jsonl"
 
 
 def rail_expected() -> dict[str, Any]:
-    metrics: dict[str, Any] = json.loads((RAIL / "expected.json").read_text("utf-8"))["metrics"]
+    metrics: dict[str, Any] = json.loads((RAIL / "recorded" / "expected.json").read_text("utf-8"))[
+        "metrics"
+    ]
     return metrics
 
 
 def test_replay_of_rail_run_reproduces_its_metrics(tmp_path: Path) -> None:
     out = tmp_path / "run.json"
-    code = main(["run", "--golden", str(GOLDEN), "--replay", str(RAIL / "records.json"),
+    code = main(["run", "--golden", str(GOLDEN), "--replay", str(RECORDS),
                  "--out", str(out)])  # fmt: skip
     assert code == ExitCode.OK
     result = json.loads(out.read_text(encoding="utf-8"))

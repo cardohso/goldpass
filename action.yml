@@ -1,0 +1,143 @@
+name: goldpass
+description: Regression-test a RAG system against a golden set and fail the job when quality drops.
+author: João Pedro Cardoso
+branding:
+  icon: check-circle
+  color: yellow
+
+inputs:
+  config:
+    description: Path to goldpass.yaml. Other inputs override what it sets.
+    required: false
+  golden:
+    description: Golden-set JSONL file.
+    required: false
+  url:
+    description: HTTP endpoint that speaks goldpass's record format (instead of a config system).
+    required: false
+  replay:
+    description: Recorded answers file to score (instead of a config system).
+    required: false
+  thresholds:
+    description: Thresholds YAML. Below them, the step fails with exit code 1.
+    required: false
+  baseline:
+    description: Previous results JSON. A drop beyond the allowed amount fails the step.
+    required: false
+  out:
+    description: Results JSON path (Markdown is written next to it).
+    required: false
+  k:
+    description: Score only the top k contexts.
+    required: false
+  generator:
+    description: The system's model name, for the same-family judge guard.
+    required: false
+  no-judge:
+    description: '"true" to skip LLM judges (no API calls).'
+    required: false
+    default: "false"
+  allow-same-family:
+    description: '"true" to let the gating judge share the generator''s model family.'
+    required: false
+    default: "false"
+  working-directory:
+    description: Directory to run in; relative paths resolve from here.
+    required: false
+    default: "."
+  python-version:
+    description: Python used to run goldpass.
+    required: false
+    default: "3.12"
+  cache-judge:
+    description: '"true" to persist the judge cache between runs with actions/cache.'
+    required: false
+    default: "true"
+  cache-dir:
+    description: Judge cache directory, relative to working-directory (match judging.cache_dir).
+    required: false
+    default: .goldpass/cache
+  summary:
+    description: '"true" to add the Markdown report to the job summary.'
+    required: false
+    default: "true"
+
+outputs:
+  passed:
+    description: '"true" if the gate passed (or nothing was gated), "false" otherwise.'
+    value: ${{ steps.run.outputs.passed }}
+  exit-code:
+    description: 0 pass, 1 gate failed, 2 bad input, 3 system or judge unreachable.
+    value: ${{ steps.run.outputs.exit-code }}
+  results:
+    description: Path of the results JSON.
+    value: ${{ steps.run.outputs.results }}
+  markdown:
+    description: Path of the Markdown report.
+    value: ${{ steps.run.outputs.markdown }}
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v10.3.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - if: inputs.cache-judge == 'true'
+      uses: actions/cache@v6
+      with:
+        path: ${{ inputs.working-directory }}/${{ inputs.cache-dir }}
+        key: goldpass-judge-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: goldpass-judge-${{ github.job }}-
+
+    - id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      # Inputs reach the script only through env vars, never interpolated into it.
+      env:
+        GP_CONFIG: ${{ inputs.config }}
+        GP_GOLDEN: ${{ inputs.golden }}
+        GP_URL: ${{ inputs.url }}
+        GP_REPLAY: ${{ inputs.replay }}
+        GP_THRESHOLDS: ${{ inputs.thresholds }}
+        GP_BASELINE: ${{ inputs.baseline }}
+        GP_OUT: ${{ inputs.out }}
+        GP_K: ${{ inputs.k }}
+        GP_GENERATOR: ${{ inputs.generator }}
+        GP_NO_JUDGE: ${{ inputs.no-judge }}
+        GP_SAME_FAMILY: ${{ inputs.allow-same-family }}
+        GP_SUMMARY: ${{ inputs.summary }}
+        GP_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        args=(run)
+        [ -n "$GP_CONFIG" ] && args+=(--config "$GP_CONFIG")
+        [ -n "$GP_GOLDEN" ] && args+=(--golden "$GP_GOLDEN")
+        [ -n "$GP_URL" ] && args+=(--url "$GP_URL")
+        [ -n "$GP_REPLAY" ] && args+=(--replay "$GP_REPLAY")
+        [ -n "$GP_THRESHOLDS" ] && args+=(--thresholds "$GP_THRESHOLDS")
+        [ -n "$GP_BASELINE" ] && args+=(--baseline "$GP_BASELINE")
+        [ -n "$GP_OUT" ] && args+=(--out "$GP_OUT")
+        [ -n "$GP_K" ] && args+=(-k "$GP_K")
+        [ -n "$GP_GENERATOR" ] && args+=(--generator "$GP_GENERATOR")
+        [ "$GP_NO_JUDGE" = "true" ] && args+=(--no-judge)
+        [ "$GP_SAME_FAMILY" = "true" ] && args+=(--allow-same-family)
+        [ "$GP_SUMMARY" = "true" ] && args+=(--summary "$GITHUB_STEP_SUMMARY")
+        args+=(--json-paths "$RUNNER_TEMP/goldpass-paths.json")
+
+        set +e
+        uvx --from "$GP_ACTION_PATH" goldpass "${args[@]}"
+        code=$?
+        set -e
+
+        results="" markdown=""
+        if [ -f "$RUNNER_TEMP/goldpass-paths.json" ]; then
+          results=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["results"])' "$RUNNER_TEMP/goldpass-paths.json")
+          markdown=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["markdown"])' "$RUNNER_TEMP/goldpass-paths.json")
+        fi
+        {
+          echo "exit-code=$code"
+          echo "passed=$([ "$code" = 0 ] && echo true || echo false)"
+          echo "results=$results"
+          echo "markdown=$markdown"
+        } >> "$GITHUB_OUTPUT"
+        exit "$code"

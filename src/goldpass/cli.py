@@ -154,6 +154,7 @@ def finish(
     baseline: Path | None,
     out: Path,
     summary: Path | None,
+    json_paths: Path | None = None,
 ) -> int:
     """Gate, write results JSON + Markdown, append to the job summary, return the exit code."""
     gated = thresholds is not None or baseline is not None
@@ -175,6 +176,9 @@ def finish(
     if summary:
         with Path(summary).open("a", encoding="utf-8") as f:
             f.write(markdown)
+    if json_paths:
+        paths = {"results": str(out.resolve()), "markdown": str(out.with_suffix(".md").resolve())}
+        Path(json_paths).write_text(json.dumps(paths), encoding="utf-8")
     _print_metrics(result)
     print(f"\nresults: {out} (markdown: {out.with_suffix('.md')})")
     if gated and not result["gate"]["passed"]:
@@ -247,7 +251,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         judging.allow_same_family,
     )  # fmt: skip
     try:
-        code = finish(result, thresholds, cfg.baseline, cfg.out, args.summary)
+        code = finish(result, thresholds, cfg.baseline, cfg.out, args.summary, args.json_paths)
     except ConfigError as e:
         _err(str(e))
         return ExitCode.USAGE
@@ -272,7 +276,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
         return ExitCode.USAGE
     result.pop("gate", None)
     out = args.out or args.results.with_name(args.results.stem + ".compared.json")
-    return finish(result, thresholds, args.baseline, out, args.summary)
+    return finish(result, thresholds, args.baseline, out, args.summary, args.json_paths)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -305,9 +309,10 @@ def build_parser() -> argparse.ArgumentParser:
     compare = sub.add_parser("compare", help="gate a saved results file against a baseline")
     compare.add_argument("results", type=Path, help="results JSON from goldpass run")
     compare.add_argument("baseline", type=Path, help="baseline results JSON")
+    compare.add_argument("--out", type=Path, help="where to write the compared results")
     compare.add_argument("--thresholds", type=Path, help="thresholds YAML")
     compare.add_argument("--summary", type=Path, help="append the Markdown report here")
-    compare.add_argument("--out", type=Path, help="where to write the compared results")
+    compare.add_argument("--json-paths", type=Path, help="write the result and report paths here")
     compare.set_defaults(func=cmd_compare)
     return ap
 
@@ -317,6 +322,8 @@ def _gate_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--baseline", type=Path, help="previous results JSON: fail on regressions")
     p.add_argument("--summary", type=Path, help="append the Markdown report here, e.g. "
                    "$GITHUB_STEP_SUMMARY")  # fmt: skip
+    p.add_argument("--json-paths", type=Path, help="write the result and report paths to this "
+                   "JSON file, for CI wrappers")  # fmt: skip
 
 
 def main(argv: list[str] | None = None) -> int:

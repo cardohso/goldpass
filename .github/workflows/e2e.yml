@@ -1,0 +1,84 @@
+name: e2e
+
+# Runs the goldpass Action itself (uses: ./) the way another repo would, end to end:
+# against the fake RAG service over HTTP in both modes, and on the recorded rail run.
+# No network beyond installing goldpass, no API keys.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  fake-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the fake RAG service (good on 8765, regressed on 8766)
+        run: |
+          python3 examples/fake_rag/server.py --port 8765 --mode good &
+          python3 examples/fake_rag/server.py --port 8766 --mode regressed &
+          for port in 8765 8766; do
+            for _ in $(seq 30); do curl -sf "http://127.0.0.1:$port/health" && break; sleep 1; done
+          done
+
+      - name: Gate the good service (must pass)
+        id: good
+        uses: ./
+        with:
+          config: examples/fake_rag/goldpass.yaml
+
+      - name: Gate the regressed service (must fail)
+        id: regressed
+        continue-on-error: true
+        uses: ./
+        with:
+          config: examples/fake_rag/goldpass.yaml
+          url: http://127.0.0.1:8766/ask
+          out: examples/fake_rag/goldpass-results/regressed.json
+
+      - name: Check the outcomes
+        env:
+          GOOD_PASSED: ${{ steps.good.outputs.passed }}
+          BAD_OUTCOME: ${{ steps.regressed.outcome }}
+          BAD_CODE: ${{ steps.regressed.outputs.exit-code }}
+          BAD_RESULTS: ${{ steps.regressed.outputs.results }}
+        run: |
+          echo "good passed=$GOOD_PASSED; regressed outcome=$BAD_OUTCOME exit=$BAD_CODE"
+          test "$GOOD_PASSED" = true
+          test "$BAD_OUTCOME" = failure
+          test "$BAD_CODE" = 1
+          python3 - "$BAD_RESULTS" <<'EOF'
+          import json, sys
+          failures = json.load(open(sys.argv[1]))["gate"]["failures"]
+          print("\n".join(failures))
+          assert any("wrong-document" in f for f in failures), failures
+          assert any(f.startswith("refusal_rate") for f in failures), failures
+          EOF
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: fake-service-results
+          path: examples/fake_rag/goldpass-results/
+
+  rail-recorded:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Gate the recorded rail-regulation-rag run against its baseline
+        id: rail
+        uses: ./
+        with:
+          config: examples/rail/goldpass.yaml
+
+      - name: Check the outcome
+        env:
+          PASSED: ${{ steps.rail.outputs.passed }}
+          MARKDOWN: ${{ steps.rail.outputs.markdown }}
+        run: |
+          test "$PASSED" = true
+          test -s "$MARKDOWN"
