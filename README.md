@@ -135,7 +135,10 @@ goldpass computes the same judge-free metrics as the rail repo's own gate
 `goldpass run --config examples/rail/goldpass.yaml` gates that run with the rail repo's
 thresholds and against a committed baseline. `examples/rail/live.yaml` (and the manual
 `rail-live` workflow) gates the live demo. The demo's API returns no retrieved passages, so
-only grounding and answer/refusal rates are gated there.
+only grounding and answer/refusal rates are gated there. The first manual run
+([39177557610](https://github.com/cardohso/goldpass/actions/runs/39177557610), 2026-10-18) passed:
+grounding 1.00 (n=16), answered rate 1.00 (n=16), refusal rate 1.00 (n=4), 0 errors, with
+retrieval metrics skipped on the 16 `answer` questions.
 
 ## Design decisions
 

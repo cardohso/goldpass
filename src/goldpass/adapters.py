@@ -73,7 +73,6 @@ class HttpAdapter:
         self._last = self._clock()
 
     def _call(self, body: Any) -> httpx.Response:
-        self._pace()
         try:
             if self.system.method == "GET":
                 resp = self._client.get(self.system.url, params=body)
@@ -94,6 +93,7 @@ class HttpAdapter:
             if self._log:
                 self._log(f"  {item.id}: {e}, retrying in {wait:.1f}s (attempt {attempt + 1})")
 
+        self._pace()  # before the clock starts: pacing is ours, not the system's latency
         t0 = time.perf_counter()
         try:
             resp = call_with_retry(

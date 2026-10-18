@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -194,3 +195,14 @@ def test_min_interval_paces_requests() -> None:
         a.ask(ITEM)
         clock.now += 2.0  # each request takes 2 s
     assert clock.waits == [10.0, 10.0]
+
+
+def test_pacing_is_not_counted_as_latency() -> None:
+    server = Server(*(httpx.Response(200, json=OK_BODY) for _ in range(2)))
+    system = HttpSystem(url="http://rag.test/ask", min_interval_s=0.3)
+    a = HttpAdapter(system, httpx.MockTransport(server))  # real sleep
+    a.ask(ITEM)
+    t0 = time.perf_counter()
+    second = a.ask(ITEM)
+    assert time.perf_counter() - t0 >= 0.25  # it did wait
+    assert second.latency_s is not None and second.latency_s < 0.2  # but not on the clock
