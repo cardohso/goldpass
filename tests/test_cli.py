@@ -20,7 +20,7 @@ def test_command_is_required() -> None:
     assert exc.value.code == ExitCode.USAGE
 
 
-@pytest.mark.parametrize("command", ["run", "validate", "compare"])
+@pytest.mark.parametrize("command", ["run", "compare"])
 def test_commands_exist(command: str) -> None:
     assert main([command]) == ExitCode.USAGE  # stubs until their step lands
 

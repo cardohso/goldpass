@@ -16,7 +16,9 @@ classifiers = [
     "Topic :: Software Development :: Testing",
     "Typing :: Typed",
 ]
-dependencies = []
+dependencies = [
+    "jsonschema>=4.26.0",
+]
 
 [project.urls]
 Source = "https://github.com/cardohso/goldpass"
@@ -52,4 +54,5 @@ dev = [
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "ruff>=0.17.1",
+    "types-jsonschema>=4.26.0.20261006",
 ]

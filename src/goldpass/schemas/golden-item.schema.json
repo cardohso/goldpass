@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/cardohso/goldpass/main/src/goldpass/schemas/golden-item.schema.json",
+  "title": "goldpass golden-set item",
+  "description": "One line of a goldpass golden set (JSONL): a question, what the RAG system should do with it, and the evidence it should use.",
+  "type": "object",
+  "required": ["id", "question", "expected"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "description": "Unique, stable identifier. Used to match answers to questions and to compare runs.",
+      "type": "string",
+      "pattern": "^\\S+$",
+      "maxLength": 200
+    },
+    "question": {
+      "description": "The question sent to the system under test.",
+      "type": "string",
+      "minLength": 1
+    },
+    "expected": {
+      "description": "'answer' if the corpus supports an answer; 'refuse' if the system should decline.",
+      "enum": ["answer", "refuse"]
+    },
+    "reference_answer": {
+      "description": "A correct answer, for humans and for judge metrics that need one. Optional.",
+      "type": "string"
+    },
+    "gold_passage_ids": {
+      "description": "Passage (chunk) ids that support the answer. Retrieval metrics compare retrieved ids with these. Must be empty for 'refuse' items.",
+      "$ref": "#/$defs/idList"
+    },
+    "source_doc_ids": {
+      "description": "Documents the question is about. Grounding passes only if every cited document is in this list.",
+      "$ref": "#/$defs/idList"
+    },
+    "tags": {
+      "description": "Free labels for slicing results, lowercase with '-' or '_' (e.g. 'wrong-document' for questions that a similar passage in another document could mislead).",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" }
+    },
+    "notes": {
+      "description": "Free text for reviewers; ignored by goldpass.",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Anything else you want to carry through to the results; ignored by goldpass.",
+      "type": "object"
+    }
+  },
+  "if": { "properties": { "expected": { "const": "refuse" } } },
+  "then": { "properties": { "gold_passage_ids": { "maxItems": 0 } } },
+  "$defs": {
+    "idList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
