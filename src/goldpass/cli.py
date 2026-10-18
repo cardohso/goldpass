@@ -23,10 +23,18 @@ from goldpass.config import (
     load_config,
     parse_system,
 )
+from goldpass.gate import (
+    Thresholds,
+    check_thresholds,
+    compare_baseline,
+    gate_section,
+    load_thresholds,
+)
 from goldpass.golden import GoldenSetError, load_golden, validate_golden
 from goldpass.judging import JudgeRun, judge_records, make_judges
 from goldpass.metrics import METRICS
 from goldpass.providers import SameFamilyError, check_judge_family, model_family
+from goldpass.report import render
 from goldpass.runner import collect, results, write_answers
 
 
@@ -100,6 +108,8 @@ def _config(args: argparse.Namespace) -> Config:
         k=args.k if args.k is not None else base.k,
         generator=generator,
         judging=judging,
+        thresholds=args.thresholds or base.thresholds,
+        baseline=args.baseline or base.baseline,
     )
 
 
@@ -119,6 +129,57 @@ def _print_metrics(result: dict[str, Any]) -> None:
         print(f"\n{_plural(errors, 'item')} failed and were not scored (see items[].error)")
     for note, count in result["skipped"].items():
         print(f"skipped on {_plural(count, 'item')}: {note}")
+    gate = result.get("gate")
+    if gate:
+        print(f"\ngate: {'PASSED' if gate['passed'] else 'FAILED'}")
+        for failure in gate["failures"]:
+            print(f"  - {failure}")
+        if gate.get("baseline_missing"):
+            print(f"  (no baseline at {gate['baseline_missing']}: comparison skipped)")
+
+
+def _load_json(path: Path, what: str) -> dict[str, Any]:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise ConfigError(f"{what} {path}: cannot read: {e}") from e
+    if not isinstance(data, dict) or not {"meta", "metrics", "items"} <= set(data):
+        raise ConfigError(f"{what} {path}: not a goldpass results file")
+    return data
+
+
+def finish(
+    result: dict[str, Any],
+    thresholds: Thresholds | None,
+    baseline: Path | None,
+    out: Path,
+    summary: Path | None,
+) -> int:
+    """Gate, write results JSON + Markdown, append to the job summary, return the exit code."""
+    gated = thresholds is not None or baseline is not None
+    comparison, missing = None, None
+    if baseline is not None:
+        if baseline.exists():
+            comparison = compare_baseline(result, _load_json(baseline, "baseline"), thresholds)
+        else:
+            missing = str(baseline)
+    if gated:
+        checks = check_thresholds(result, thresholds) if thresholds else []
+        result["gate"] = gate_section(checks, comparison) | {"baseline_missing": missing}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    markdown = render(result)
+    if missing:
+        markdown += f"\n_No baseline found at `{missing}`: the comparison was skipped._\n"
+    out.with_suffix(".md").write_text(markdown, encoding="utf-8")
+    if summary:
+        with Path(summary).open("a", encoding="utf-8") as f:
+            f.write(markdown)
+    _print_metrics(result)
+    print(f"\nresults: {out} (markdown: {out.with_suffix('.md')})")
+    if gated and not result["gate"]["passed"]:
+        return ExitCode.GATE_FAILED
+    return ExitCode.OK
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -126,6 +187,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         cfg = _config(args)
         assert cfg.golden is not None
         items = load_golden(cfg.golden)
+        thresholds = load_thresholds(cfg.thresholds) if cfg.thresholds else None
     except (ConfigError, GoldenSetError) as e:
         _err(str(e))
         return ExitCode.USAGE
@@ -184,9 +246,11 @@ def cmd_run(args: argparse.Namespace) -> int:
         items, records, system_name, cfg.golden, cfg.k, runs, cfg.generator,
         judging.allow_same_family,
     )  # fmt: skip
-    cfg.out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    log(f"results saved to {cfg.out}")
-    _print_metrics(result)
+    try:
+        code = finish(result, thresholds, cfg.baseline, cfg.out, args.summary)
+    except ConfigError as e:
+        _err(str(e))
+        return ExitCode.USAGE
 
     if all(r.error for r in records):
         _err("every item failed: is the system running and reachable?")
@@ -194,12 +258,21 @@ def cmd_run(args: argparse.Namespace) -> int:
     if runs and runs[0].attempted and runs[0].failed == runs[0].attempted:
         _err(f"the gating judge {runs[0].name} failed on every item it judged")
         return ExitCode.RUNTIME
-    return ExitCode.OK
+    return code
 
 
-def cmd_stub(args: argparse.Namespace) -> int:
-    print(f"goldpass {args.command}: not implemented yet", file=sys.stderr)
-    return ExitCode.USAGE
+def cmd_compare(args: argparse.Namespace) -> int:
+    """Re-gate a saved results file against a baseline, without calling anything."""
+    try:
+        result = _load_json(args.results, "results")
+        _load_json(args.baseline, "baseline")
+        thresholds = load_thresholds(args.thresholds) if args.thresholds else None
+    except ConfigError as e:
+        _err(str(e))
+        return ExitCode.USAGE
+    result.pop("gate", None)
+    out = args.out or args.results.with_name(args.results.stem + ".compared.json")
+    return finish(result, thresholds, args.baseline, out, args.summary)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -221,6 +294,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--no-cache", action="store_true", help="do not read or write the judge cache")
     run.add_argument("--allow-same-family", action="store_true",
                      help="let the gating judge share the generator's model family")  # fmt: skip
+    _gate_args(run)
     run.set_defaults(func=cmd_run)
 
     validate = sub.add_parser("validate", help="check a golden-set file against the schema")
@@ -228,9 +302,21 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("--strict", action="store_true", help="fail on warnings too")
     validate.set_defaults(func=cmd_validate)
 
-    compare = sub.add_parser("compare", help="compare a results file with a saved baseline")
-    compare.set_defaults(func=cmd_stub)
+    compare = sub.add_parser("compare", help="gate a saved results file against a baseline")
+    compare.add_argument("results", type=Path, help="results JSON from goldpass run")
+    compare.add_argument("baseline", type=Path, help="baseline results JSON")
+    compare.add_argument("--thresholds", type=Path, help="thresholds YAML")
+    compare.add_argument("--summary", type=Path, help="append the Markdown report here")
+    compare.add_argument("--out", type=Path, help="where to write the compared results")
+    compare.set_defaults(func=cmd_compare)
     return ap
+
+
+def _gate_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--thresholds", type=Path, help="thresholds YAML: fail (exit 1) below them")
+    p.add_argument("--baseline", type=Path, help="previous results JSON: fail on regressions")
+    p.add_argument("--summary", type=Path, help="append the Markdown report here, e.g. "
+                   "$GITHUB_STEP_SUMMARY")  # fmt: skip
 
 
 def main(argv: list[str] | None = None) -> int:

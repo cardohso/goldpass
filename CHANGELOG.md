@@ -44,3 +44,17 @@ All notable changes to this project are documented here. The format follows
   API key); `--no-cache`. Judge calls are retried like system calls; malformed JSON replies
   are retried and never cached.
 - `--no-judge` runs without any LLM; a run with no judges configured is judge-free too.
+- Thresholds file (YAML): `min`, `max` and `min_n` per metric, per-tag rules, and baseline
+  drop limits (global `max_drop` plus per-metric overrides). Unknown metric names are errors
+  with a suggestion (`context_recall` -> `recall_at_k`).
+- Baseline comparison: fails when a metric drops more than allowed from a saved results file,
+  and names the questions that got worse. Warns when the golden set or `k` changed, and does
+  not compare judge metrics across different gating judges. A missing baseline is skipped
+  with a note, so the first run can create it.
+- Reports: Markdown (gate table with thresholds, baseline and deltas; "What failed" with the
+  lowest-scoring or regressed questions; judge comparison; tags; grounding per document;
+  per-item scores) written next to the results JSON and appended to `--summary`
+  (e.g. `$GITHUB_STEP_SUMMARY`). The results JSON gains a `gate` section.
+- `goldpass run --thresholds/--baseline/--summary` (or `thresholds:`/`baseline:` in the
+  config) exits 1 when the gate fails. `goldpass compare RESULTS BASELINE` re-gates saved
+  runs without calling anything.

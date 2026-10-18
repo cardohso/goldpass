@@ -76,6 +76,8 @@ class Config:
     k: int | None = None
     generator: Generator = field(default_factory=Generator)
     judging: Judging = field(default_factory=Judging)
+    thresholds: Path | None = None
+    baseline: Path | None = None  # a previous results JSON; skipped with a warning if absent
 
 
 # small, strict readers: unknown keys and wrong types are errors with a location
@@ -264,7 +266,19 @@ def load_config(path: Path) -> Config:
         raise ConfigError(f"{path}: invalid YAML: {e}") from e
     base = Path(path).parent
     d = _section(
-        data, str(path), {"system", "golden", "out", "k", "generator", "judges", "judging"}
+        data,
+        str(path),
+        {
+            "system",
+            "golden",
+            "out",
+            "k",
+            "generator",
+            "judges",
+            "judging",
+            "thresholds",
+            "baseline",
+        },
     )
     if "system" not in d:
         raise ConfigError(f"{path}: needs a 'system' section")
@@ -279,4 +293,11 @@ def load_config(path: Path) -> Config:
         k=k,
         generator=parse_generator(d.get("generator")),
         judging=parse_judging(d.get("judges"), d.get("judging"), base),
+        thresholds=_path(d, "thresholds", str(path), base),
+        baseline=_path(d, "baseline", str(path), base),
     )
+
+
+def _path(d: dict[str, Any], key: str, where: str, base: Path) -> Path | None:
+    value = _typed(d, key, where, str, None)
+    return None if value is None else base / value

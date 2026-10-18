@@ -25,6 +25,7 @@ Score = float | bool
 class MetricInfo:
     label: str
     description: str
+    higher_is_better: bool = True
 
 
 METRICS: dict[str, MetricInfo] = {
@@ -55,7 +56,9 @@ METRICS: dict[str, MetricInfo] = {
     ),
     "answered_rate": MetricInfo("Answered rate", "'answer' questions the system answered"),
     "refusal_rate": MetricInfo("Refusal rate", "'refuse' questions the system declined"),
-    "errors": MetricInfo("Errors", "items whose call failed or that have no recorded answer"),
+    "errors": MetricInfo(
+        "Errors", "count of items whose call failed or that have no recorded answer", False
+    ),
 }
 
 
