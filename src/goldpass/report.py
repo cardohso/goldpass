@@ -7,6 +7,8 @@ from typing import Any
 
 from goldpass.metrics import METRICS
 
+YES_NO = {"grounding", "answered_rate", "refusal_rate", "hit_rate", "errors"}  # 0/1 per item
+
 
 def _fmt(v: Any) -> str:
     if v is None:
@@ -102,10 +104,10 @@ def _failures(result: Mapping[str, Any], gate: Mapping[str, Any] | None) -> list
             continue
         label = METRICS[c["metric"]].label + ("" if c["scope"] == "all" else f" [{c['scope']}]")
         out.append(f"- **{label}**: {c['message']} (needs {c['rule']})")
-        if c["worst"]:
-            shown = ", ".join(
-                f"`{i}`" if c["metric"] == "errors" else f"`{i}` ({_fmt(v)})" for i, v in c["worst"]
-            )
+        if c["worst"] and c["metric"] in YES_NO:
+            out.append("  - failing questions: " + ", ".join(f"`{i}`" for i, _ in c["worst"]))
+        elif c["worst"]:
+            shown = ", ".join(f"`{i}` ({_fmt(v)})" for i, v in c["worst"])
             out.append(f"  - lowest-scoring questions: {shown}")
     for d in (gate.get("baseline") or {}).get("deltas", []):
         if d["ok"]:
