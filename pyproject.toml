@@ -1,0 +1,55 @@
+[project]
+name = "goldpass"
+version = "0.1.0.dev0"
+description = "Regression tests for RAG systems: a golden set, deterministic retrieval and grounding metrics, and a CI gate."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "João Pedro Cardoso" }]
+requires-python = ">=3.11"
+keywords = ["rag", "evaluation", "llm", "ci", "regression-testing", "github-actions"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Source = "https://github.com/cardohso/goldpass"
+Changelog = "https://github.com/cardohso/goldpass/blob/main/CHANGELOG.md"
+
+[project.scripts]
+goldpass = "goldpass.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/goldpass"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
