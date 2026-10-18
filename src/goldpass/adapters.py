@@ -113,8 +113,11 @@ class PythonAdapter:
     def __init__(self, system: PythonSystem):
         self.name = f"python:{system.target}"
         module_name, attr = system.target.split(":")
-        if system.search_path and str(system.search_path) not in sys.path:
-            sys.path.insert(0, str(system.search_path))
+        if system.search_path:
+            where = str(Path(system.search_path).resolve())
+            if where not in sys.path:
+                sys.path.insert(0, where)
+        importlib.invalidate_caches()  # the module may have been written after startup
         obj: Any = importlib.import_module(module_name)
         for part in attr.split("."):
             obj = getattr(obj, part)

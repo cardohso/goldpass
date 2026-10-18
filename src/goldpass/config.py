@@ -15,7 +15,9 @@ from typing import Any
 
 import yaml
 
+from goldpass.judge import JudgeSpec
 from goldpass.mapping import CitationFields, FieldMap, PassageFields
+from goldpass.providers import PROVIDERS, model_family
 from goldpass.retry import RetryPolicy
 
 
@@ -50,11 +52,30 @@ System = HttpSystem | PythonSystem | ReplaySystem
 
 
 @dataclass(frozen=True)
+class Generator:
+    """The model behind the system under test; only used by the same-family guard."""
+
+    model: str | None = None
+    family: str | None = None
+
+
+@dataclass(frozen=True)
+class Judging:
+    judges: tuple[JudgeSpec, ...] = ()  # the first one is the gating judge
+    cache_dir: Path | None = Path(".goldpass/cache")
+    strip_pattern: str | None = r"\s*\[\d+\]"  # citation markers removed before judging
+    allow_same_family: bool = False
+    retry: RetryPolicy = field(default_factory=lambda: RetryPolicy(attempts=8, backoff_s=2.0))
+
+
+@dataclass(frozen=True)
 class Config:
     system: System
     golden: Path | None = None
     out: Path = Path("goldpass-results/run.json")
     k: int | None = None
+    generator: Generator = field(default_factory=Generator)
+    judging: Judging = field(default_factory=Judging)
 
 
 # small, strict readers: unknown keys and wrong types are errors with a location
@@ -140,6 +161,61 @@ def _retry(data: Any, where: str) -> RetryPolicy:
     )
 
 
+def parse_generator(data: Any, where: str = "generator") -> Generator:
+    d = _section(data, where, {"model", "family"})
+    model = _typed(d, "model", where, str, None)
+    return Generator(model, _typed(d, "family", where, str, None) or model_family(model))
+
+
+def parse_judge(data: Any, where: str) -> JudgeSpec:
+    keys = {"provider", "model", "base_url", "api_key_env", "family", "json_mode", "max_tokens",
+            "timeout_s", "extra_body"}  # fmt: skip
+    d = _section(data, where, keys)
+    for key in ("provider", "model"):
+        if key not in d:
+            raise ConfigError(f"{where}.{key}: required")
+    provider, model = _typed(d, "provider", where, str, ""), _typed(d, "model", where, str, "")
+    known = PROVIDERS.get(provider)
+    if known is None and "base_url" not in d:
+        raise ConfigError(
+            f"{where}.provider: unknown provider {provider!r} (known: {', '.join(PROVIDERS)}); "
+            "set base_url for any other OpenAI-compatible endpoint"
+        )
+    return JudgeSpec(
+        provider=provider,
+        model=model,
+        base_url=_typed(d, "base_url", where, str, known.base_url if known else ""),
+        api_key_env=_typed(d, "api_key_env", where, str, known.api_key_env if known else None),
+        family=_typed(d, "family", where, str, None) or model_family(model),
+        json_mode=_typed(d, "json_mode", where, bool, True),
+        max_tokens=_typed(d, "max_tokens", where, int, 4096),
+        timeout_s=float(_typed(d, "timeout_s", where, (int, float), 120.0)),
+        extra_body=_typed(d, "extra_body", where, dict, {}),
+    )
+
+
+def parse_judging(judges: Any, options: Any, base_dir: Path) -> Judging:
+    if judges is None:
+        judges = []
+    if not isinstance(judges, list):
+        raise ConfigError("judges: expected a list")
+    d = _section(options, "judging", {"cache_dir", "strip_pattern", "allow_same_family", "retry"})
+    cache_dir = _typed(d, "cache_dir", "judging", str, ".goldpass/cache")
+    strip = _typed(d, "strip_pattern", "judging", str, r"\s*\[\d+\]")
+    if strip is not None:
+        try:
+            re.compile(strip)
+        except re.error as e:
+            raise ConfigError(f"judging.strip_pattern: not a valid regex: {e}") from e
+    return Judging(
+        judges=tuple(parse_judge(j, f"judges[{i}]") for i, j in enumerate(judges)),
+        cache_dir=None if cache_dir is None else base_dir / cache_dir,
+        strip_pattern=strip,
+        allow_same_family=_typed(d, "allow_same_family", "judging", bool, False),
+        retry=_retry(d["retry"], "judging.retry") if "retry" in d else Judging().retry,
+    )
+
+
 def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
     if not isinstance(data, dict) or "type" not in data:
         raise ConfigError(f"{where}: needs a 'type' (http, python or replay)")
@@ -187,7 +263,9 @@ def load_config(path: Path) -> Config:
     except yaml.YAMLError as e:
         raise ConfigError(f"{path}: invalid YAML: {e}") from e
     base = Path(path).parent
-    d = _section(data, str(path), {"system", "golden", "out", "k"})
+    d = _section(
+        data, str(path), {"system", "golden", "out", "k", "generator", "judges", "judging"}
+    )
     if "system" not in d:
         raise ConfigError(f"{path}: needs a 'system' section")
     golden = _typed(d, "golden", str(path), str, None)
@@ -199,4 +277,6 @@ def load_config(path: Path) -> Config:
         golden=base / golden if golden else None,
         out=base / _typed(d, "out", str(path), str, "goldpass-results/run.json"),
         k=k,
+        generator=parse_generator(d.get("generator")),
+        judging=parse_judging(d.get("judges"), d.get("judging"), base),
     )

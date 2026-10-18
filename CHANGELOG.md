@@ -32,3 +32,15 @@ All notable changes to this project are documented here. The format follows
 - `goldpass run` with `goldpass.yaml` or `--url` / `--python` / `--replay`, `--golden`, `-k`,
   `--out`. Live runs save `<out>.answers.json` so the same answers can be replayed. Exit code 3
   when the system cannot be set up or every item fails.
+- Optional LLM judges over any OpenAI-compatible API (presets: groq, gemini, openai,
+  openrouter, mistral, ollama; or any `base_url`), no SDK and no RAGAS dependency:
+  faithfulness (claims extracted, then checked against the contexts) and answer relevancy
+  (1-5 rubric scaled to 0-1; not RAGAS' embedding-based metric). Citation markers are stripped
+  before judging. Several judges can score the same answers; only the first feeds the metrics.
+- Same-family guard: refuses to run when the gating judge's model family (inferred from the
+  model name or set explicitly) matches the generator's, or when either is unknown, unless
+  `--allow-same-family` is passed (recorded in the results).
+- Disk cache for judge calls (SQLite, keyed by the full request and a prompt version, never the
+  API key); `--no-cache`. Judge calls are retried like system calls; malformed JSON replies
+  are retried and never cached.
+- `--no-judge` runs without any LLM; a run with no judges configured is judge-free too.

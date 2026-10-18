@@ -19,8 +19,10 @@ from typing import Any
 
 from goldpass import __version__
 from goldpass.adapters import Adapter
+from goldpass.config import Generator
 from goldpass.golden import GoldenItem
-from goldpass.metrics import ItemScore, aggregate, by_document, by_tag, score_item
+from goldpass.judging import JUDGE_METRICS, JudgeRun
+from goldpass.metrics import ItemScore, aggregate, by_document, by_tag, mean_of, score_item
 from goldpass.record import Record
 
 Log = Callable[[str], None]
@@ -68,9 +70,17 @@ def results(
     system: str,
     golden: Path,
     k: int | None,
+    judge_runs: Sequence[JudgeRun] = (),
+    generator: Generator | None = None,
+    allow_same_family: bool = False,
 ) -> dict[str, Any]:
     by_id = {r.id: r for r in records}
     scores = [score_item(i, by_id.get(i.id), k) for i in items]
+    if judge_runs:  # the first (gating) judge feeds the main metrics
+        for s in scores:
+            s.metrics.update(judge_runs[0].scores.get(s.id, {}))
+            s.notes += judge_runs[0].notes.get(s.id, [])
+    generator = generator or Generator()
     return {
         "goldpass_version": __version__,
         "meta": {
@@ -78,6 +88,9 @@ def results(
             "golden": str(golden),
             "n_items": len(items),
             "k": k,
+            "generator": {"model": generator.model, "family": generator.family},
+            "judge_free": not judge_runs,
+            "allow_same_family": allow_same_family,
             "commit": commit(),
             "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         },
@@ -86,6 +99,23 @@ def results(
             tag: {name: asdict(a) for name, a in agg.items()} for tag, agg in by_tag(scores).items()
         },
         "by_document": [asdict(row) for row in by_document(scores)],
+        "judges": [
+            {
+                "name": run.name,
+                "family": run.family,
+                "gating": n == 0,
+                "metrics": {
+                    m: asdict(mean_of(v.get(m) for v in run.scores.values())) for m in JUDGE_METRICS
+                },
+                "attempted": run.attempted,
+                "failed": run.failed,
+                "items": {
+                    i: {"scores": run.scores[i], "details": run.details[i], "notes": run.notes[i]}
+                    for i in run.scores
+                },
+            }
+            for n, run in enumerate(judge_runs)
+        ],
         "skipped": skipped_summary(scores),
         "items": [asdict(s) for s in scores],
     }

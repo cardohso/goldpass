@@ -28,6 +28,13 @@ class MetricInfo:
 
 
 METRICS: dict[str, MetricInfo] = {
+    "faithfulness": MetricInfo(
+        "Faithfulness (judge)", "share of the answer's claims supported by its contexts"
+    ),
+    "answer_relevancy": MetricInfo(
+        "Answer relevancy (judge)",
+        "1-5 rubric rating of how well the answer addresses the question, scaled to 0-1",
+    ),
     "precision_at_k": MetricInfo(
         "Precision@k", "share of the top-k contexts that are gold passages"
     ),
@@ -178,13 +185,15 @@ class Aggregate:
     n: int  # how many items that was
 
 
-def _agg(values: Iterable[Score | None]) -> Aggregate:
+def mean_of(values: Iterable[Score | None]) -> Aggregate:
     vs = [float(v) for v in values if v is not None]
     return Aggregate(round(mean(vs), 4) if vs else None, len(vs))
 
 
 def aggregate(scores: Sequence[ItemScore]) -> dict[str, Aggregate]:
-    out = {name: _agg(s.metrics.get(name) for s in scores) for name in METRICS if name != "errors"}
+    out = {
+        name: mean_of(s.metrics.get(name) for s in scores) for name in METRICS if name != "errors"
+    }
     errors = sum(s.error is not None for s in scores)
     out["errors"] = Aggregate(float(errors), errors)
     return out
@@ -223,7 +232,7 @@ def by_document(scores: Sequence[ItemScore]) -> list[DocumentRow]:
                 doc_id=doc,
                 questions=len(group),
                 answered=len(answered),
-                grounding=_agg(s.metrics.get("grounding") for s in answered),
+                grounding=mean_of(s.metrics.get("grounding") for s in answered),
                 cited_other_docs=tuple(sorted(others)),
             )
         )

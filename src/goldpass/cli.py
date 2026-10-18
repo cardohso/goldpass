@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from collections import Counter
+from dataclasses import replace
 from enum import IntEnum
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from goldpass.adapters import HttpAdapter, ReplayAdapter, make_adapter
 from goldpass.config import (
     Config,
     ConfigError,
+    Generator,
     HttpSystem,
     ReplaySystem,
     System,
@@ -22,7 +24,9 @@ from goldpass.config import (
     parse_system,
 )
 from goldpass.golden import GoldenSetError, load_golden, validate_golden
+from goldpass.judging import JudgeRun, judge_records, make_judges
 from goldpass.metrics import METRICS
+from goldpass.providers import SameFamilyError, check_judge_family, model_family
 from goldpass.runner import collect, results, write_answers
 
 
@@ -80,11 +84,22 @@ def _config(args: argparse.Namespace) -> Config:
     golden = args.golden or (cfg.golden if cfg else None)
     if golden is None:
         raise ConfigError("no golden set: pass --golden or set 'golden' in the config")
+    base = cfg or Config(system)
+    generator = base.generator
+    if args.generator:
+        generator = Generator(args.generator, model_family(args.generator))
+    judging = replace(
+        base.judging,
+        judges=() if args.no_judge else base.judging.judges,
+        allow_same_family=args.allow_same_family or base.judging.allow_same_family,
+    )
     return Config(
         system=system,
         golden=golden,
-        out=args.out or (cfg.out if cfg else Config(system).out),
-        k=args.k if args.k is not None else (cfg.k if cfg else None),
+        out=args.out or base.out,
+        k=args.k if args.k is not None else base.k,
+        generator=generator,
+        judging=judging,
     )
 
 
@@ -118,6 +133,20 @@ def cmd_run(args: argparse.Namespace) -> int:
     def log(msg: str) -> None:
         print(msg, file=sys.stderr)
 
+    judging = cfg.judging
+    try:
+        if judging.judges:
+            first = judging.judges[0]
+            check_judge_family(
+                first.name, first.family, cfg.generator.family, judging.allow_same_family
+            )
+        judges = make_judges(judging, use_cache=not args.no_cache, log=log)
+    except (SameFamilyError, ConfigError) as e:
+        _err(str(e))
+        return ExitCode.USAGE
+    if judging.judges and judging.allow_same_family:
+        log("warning: --allow-same-family: the gating judge was not checked against the generator")
+
     try:
         adapter = make_adapter(cfg.system, log=log)
     except (ImportError, AttributeError, TypeError, OSError, ValueError) as e:
@@ -135,18 +164,35 @@ def cmd_run(args: argparse.Namespace) -> int:
         if isinstance(adapter, HttpAdapter):
             adapter.close()
 
+    runs: list[JudgeRun] = []
+    for judge in judges:
+        log(f"judging with {judge.name} ({judge.family or 'unknown family'})")
+        runs.append(judge_records(judge, items, records, log))
+        judge.close()
+    if judges:
+        cache = judges[0].cache
+        log(f"judge cache: {cache.hits} hits, {cache.misses} misses")
+    elif not args.no_judge:
+        log("no judges configured: judge-free run (deterministic metrics only)")
+
     cfg.out.parent.mkdir(parents=True, exist_ok=True)
     if not isinstance(cfg.system, ReplaySystem):
         answers = cfg.out.with_name(cfg.out.stem + ".answers.json")
         write_answers(answers, system_name, records)
         log(f"answers saved to {answers}")
-    result = results(items, records, system_name, cfg.golden, cfg.k)
+    result = results(
+        items, records, system_name, cfg.golden, cfg.k, runs, cfg.generator,
+        judging.allow_same_family,
+    )  # fmt: skip
     cfg.out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
     log(f"results saved to {cfg.out}")
     _print_metrics(result)
 
     if all(r.error for r in records):
         _err("every item failed: is the system running and reachable?")
+        return ExitCode.RUNTIME
+    if runs and runs[0].attempted and runs[0].failed == runs[0].attempted:
+        _err(f"the gating judge {runs[0].name} failed on every item it judged")
         return ExitCode.RUNTIME
     return ExitCode.OK
 
@@ -170,6 +216,11 @@ def build_parser() -> argparse.ArgumentParser:
     which.add_argument("--replay", type=Path, help="recorded answers file")
     run.add_argument("--out", type=Path, help="results JSON (default: goldpass-results/run.json)")
     run.add_argument("-k", type=int, dest="k", help="score only the top k contexts")
+    run.add_argument("--generator", metavar="MODEL", help="the system's model, for the judge guard")
+    run.add_argument("--no-judge", action="store_true", help="skip LLM judges: no API calls")
+    run.add_argument("--no-cache", action="store_true", help="do not read or write the judge cache")
+    run.add_argument("--allow-same-family", action="store_true",
+                     help="let the gating judge share the generator's model family")  # fmt: skip
     run.set_defaults(func=cmd_run)
 
     validate = sub.add_parser("validate", help="check a golden-set file against the schema")
