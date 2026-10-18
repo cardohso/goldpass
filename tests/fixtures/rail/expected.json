@@ -1,0 +1,62 @@
+{
+ "metrics": {
+  "context_precision": 0.9375,
+  "context_recall": 0.8854,
+  "grounding": 1.0,
+  "answered_rate": 0.9375,
+  "refusal_rate": 1.0,
+  "retrieval_recall_at_k": 0.9062,
+  "wrong_document_grounding": 1.0
+ },
+ "per_document": [
+  {
+   "doc_id": "iop-directive",
+   "questions": 3,
+   "answered": 2,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-ccs",
+   "questions": 1,
+   "answered": 1,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-ene",
+   "questions": 1,
+   "answered": 1,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-noi",
+   "questions": 2,
+   "answered": 2,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-ope",
+   "questions": 3,
+   "answered": 3,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-prm",
+   "questions": 2,
+   "answered": 2,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  },
+  {
+   "doc_id": "tsi-srt",
+   "questions": 4,
+   "answered": 4,
+   "grounding": 1.0,
+   "cited_other_docs": []
+  }
+ ]
+}
