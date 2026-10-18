@@ -24,3 +24,11 @@ All notable changes to this project are documented here. The format follows
   slices by tag and by source document. Skipped metrics carry a note saying why.
 - Parity test: reproduces the judge-free metrics of a recorded rail-regulation-rag CI run
   exactly.
+- Adapters: `http` (any endpoint; JSON body template with `{question}`/`{id}`, `${ENV}` in URL
+  and headers, dotted-path field mapping, refusal regexes for systems without a flag),
+  `python` (`module:function`), and `replay` (recorded answers, same field mapping).
+- Retries with exponential backoff on 408/425/429/5xx and connection errors, honouring
+  `Retry-After` (seconds or HTTP date), with a cap on any single wait.
+- `goldpass run` with `goldpass.yaml` or `--url` / `--python` / `--replay`, `--golden`, `-k`,
+  `--out`. Live runs save `<out>.answers.json` so the same answers can be replayed. Exit code 3
+  when the system cannot be set up or every item fails.
