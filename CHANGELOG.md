@@ -18,10 +18,23 @@ All notable changes to this project are documented here. The format follows
 - `baseline.alpha` in the thresholds file: a drop past `max_drop` fails only if it is also
   significant. Off by default. New errors are never excused.
 - When a failing drop has p > 0.05, the report says it could be noise and points to `alpha`.
+- `goldpass judge-audit`: plants one unsupported claim per copy of each answer (a changed
+  number, or an appended sentence; deterministic, checked against the contexts) and measures
+  how often each judge misses it, with Wilson intervals, mean paired drop, controls already
+  scored below 1, and an exact McNemar test between judges. Each judge's model family is shown
+  next to the generator's. `--dry-run` lists the planted errors without calls; domain
+  sentences go under `audit.sentences`.
+- `--offline` for `run` and `judge-audit`: judge only from the cache, with no API keys; a cache
+  miss is an error, never a call.
+- `examples/rail/audit/`: a real audit of Groq `openai/gpt-oss-120b` and Gemini
+  `gemini-3.5-flash-lite` on recorded rail answers, with the judge cache, reproducible offline.
 
 ### Fixed
 
 - "1 items were not scored" in the report.
+- Judges that return a bare JSON list for claims or verdicts are accepted.
+- Planted number errors skip numbers after lower-bound conditions ("greater than 250 km/h"),
+  where a changed value can still be implied by the passage. Found by the first real audit.
 
 ## [0.1.0] - 2026-10-19
 

@@ -81,3 +81,13 @@ def flip_margin(
     if failing:
         return max(margin(g) for g in failing)
     return min(margin(g) for g in gaps)
+
+
+def mcnemar_exact(b: int, c: int) -> float:
+    """Two-sided exact McNemar p-value from the discordant pairs of a paired yes/no outcome
+    (b: only the first judge missed, c: only the second missed)."""
+    n = b + c
+    if n == 0:
+        return 1.0
+    tail: int = sum(comb(n, i) for i in range(min(b, c) + 1))
+    return min(1.0, 2 * tail / (1 << n))

@@ -1,0 +1,20 @@
+# Judge audit on a recorded rail-regulation-rag run. Reproduce without keys or network:
+#   goldpass judge-audit --config examples/rail/audit/goldpass.yaml --offline
+# Drop --offline (and set GROQ_API_KEY, GEMINI_API_KEY) to re-judge for real.
+golden: ../golden.jsonl
+out: goldpass-results/judge-audit.json
+generator: {model: gemini-3.5-flash-lite}   # the model that wrote these answers
+system:
+  type: replay
+  path: answers.json
+  fields:
+    retrieved: hits
+    passage: {id: passage_id}
+judges:
+  - provider: groq
+    model: openai/gpt-oss-120b
+    extra_body: {reasoning_effort: low}
+  - provider: gemini
+    model: gemini-3.5-flash-lite             # same model as the generator, on purpose
+judging:
+  cache_dir: cache                          # every judge reply from the original run

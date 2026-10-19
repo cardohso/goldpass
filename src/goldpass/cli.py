@@ -13,6 +13,8 @@ from typing import Any
 
 from goldpass import __version__
 from goldpass.adapters import HttpAdapter, ReplayAdapter, make_adapter
+from goldpass.audit import audit_result, score_judge
+from goldpass.audit import render as render_audit
 from goldpass.config import (
     Config,
     ConfigError,
@@ -33,6 +35,7 @@ from goldpass.gate import (
 from goldpass.golden import GoldenSetError, load_golden, validate_golden
 from goldpass.judging import JudgeRun, judge_records, make_judges
 from goldpass.metrics import METRICS
+from goldpass.perturb import DEFAULT_SENTENCES, build
 from goldpass.providers import SameFamilyError, check_judge_family, model_family
 from goldpass.report import render
 from goldpass.runner import collect, results, write_answers
@@ -110,6 +113,7 @@ def _config(args: argparse.Namespace) -> Config:
         judging=judging,
         thresholds=args.thresholds or base.thresholds,
         baseline=args.baseline or base.baseline,
+        audit_sentences=base.audit_sentences,
     )
 
 
@@ -206,7 +210,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             check_judge_family(
                 first.name, first.family, cfg.generator.family, judging.allow_same_family
             )
-        judges = make_judges(judging, use_cache=not args.no_cache, log=log)
+        judges = make_judges(judging, use_cache=not args.no_cache, log=log, offline=args.offline)
     except (SameFamilyError, ConfigError) as e:
         _err(str(e))
         return ExitCode.USAGE
@@ -279,6 +283,78 @@ def cmd_compare(args: argparse.Namespace) -> int:
     return finish(result, thresholds, args.baseline, out, args.summary, args.json_paths)
 
 
+def cmd_judge_audit(args: argparse.Namespace) -> int:
+    """Plant one unsupported claim per copy of each answer and see which judges notice."""
+    try:
+        cfg = _config(args)
+        assert cfg.golden is not None
+        items = load_golden(cfg.golden)
+        if not cfg.judging.judges:
+            raise ConfigError("judge-audit needs at least one judge: add a `judges:` section")
+    except (ConfigError, GoldenSetError) as e:
+        _err(str(e))
+        return ExitCode.USAGE
+
+    def log(msg: str) -> None:
+        print(msg, file=sys.stderr)
+
+    try:
+        judges = (
+            [] if args.dry_run else make_judges(cfg.judging, not args.no_cache, log, args.offline)
+        )
+        adapter = make_adapter(cfg.system, log=log)
+    except ConfigError as e:
+        _err(str(e))
+        return ExitCode.USAGE
+    except (ImportError, AttributeError, TypeError, OSError, ValueError) as e:
+        _err(f"cannot set up the system under test: {type(e).__name__}: {e}")
+        return ExitCode.RUNTIME
+    try:
+        records = collect(items, adapter, log)
+    finally:
+        if isinstance(adapter, HttpAdapter):
+            adapter.close()
+    try:
+        perturbations = build(records, cfg.audit_sentences or DEFAULT_SENTENCES)
+    except ValueError as e:
+        _err(f"{e}: add domain sentences under audit.sentences in the config")
+        return ExitCode.USAGE
+    if not perturbations:
+        _err("nothing to audit: no answered question has contexts with text")
+        return ExitCode.USAGE
+    n_items = len({p.id for p in perturbations})
+    log(f"{len(perturbations)} planted errors in {n_items} answers")
+    if args.dry_run:
+        for p in perturbations:
+            change = f"{p.original!r} -> {p.planted!r}" if p.kind == "number" else repr(p.planted)
+            print(f"{p.id} {p.kind}: {change}")
+        return ExitCode.OK
+
+    answers = n_items + len(perturbations)
+    log(f"each judge scores {answers} answers (up to {2 * answers} calls per judge, cached)")
+    scores = []
+    for judge in judges:
+        log(f"auditing {judge.name} ({judge.family or 'unknown family'})")
+        scores.append(score_judge(judge, items, records, perturbations, log))
+        judge.close()
+    generator = {"model": cfg.generator.model, "family": cfg.generator.family}
+    result = audit_result(adapter.name, generator, records, perturbations, scores)
+    out = args.out or cfg.out.with_name("judge-audit.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    markdown = render_audit(result)
+    out.with_suffix(".md").write_text(markdown, encoding="utf-8")
+    if args.summary:
+        with Path(args.summary).open("a", encoding="utf-8") as f:
+            f.write(markdown)
+    print(markdown.split("<details>")[0].rstrip())
+    print(f"\naudit: {out} (markdown: {out.with_suffix('.md')})")
+    if all(not s.control for s in scores):
+        _err("no judge scored any answer: check the judges' API keys and quotas")
+        return ExitCode.RUNTIME
+    return ExitCode.OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="goldpass", description=__doc__)
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -296,6 +372,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--generator", metavar="MODEL", help="the system's model, for the judge guard")
     run.add_argument("--no-judge", action="store_true", help="skip LLM judges: no API calls")
     run.add_argument("--no-cache", action="store_true", help="do not read or write the judge cache")
+    run.add_argument("--offline", action="store_true",
+                     help="judge only from the cache: no API calls, no keys needed")  # fmt: skip
     run.add_argument("--allow-same-family", action="store_true",
                      help="let the gating judge share the generator's model family")  # fmt: skip
     _gate_args(run)
@@ -305,6 +383,26 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("golden", type=Path, help="golden-set JSONL file")
     validate.add_argument("--strict", action="store_true", help="fail on warnings too")
     validate.set_defaults(func=cmd_validate)
+
+    audit = sub.add_parser(
+        "judge-audit", help="plant unsupported claims and measure how often each judge misses them"
+    )
+    audit.add_argument("--config", type=Path, help="goldpass.yaml with judges")
+    audit.add_argument("--golden", type=Path, help="golden-set JSONL (overrides the config)")
+    which = audit.add_mutually_exclusive_group()
+    which.add_argument("--url", help="HTTP endpoint that speaks goldpass's record format")
+    which.add_argument("--python", metavar="MODULE:FUNCTION", help="callable taking a question")
+    which.add_argument("--replay", type=Path, help="recorded answers file (needs context texts)")
+    audit.add_argument("--out", type=Path, help="audit JSON (default: next to the config's out)")
+    audit.add_argument("--generator", metavar="MODEL", help="the model that wrote the answers")
+    audit.add_argument("--no-cache", action="store_true", help="do not use the judge cache")
+    audit.add_argument("--summary", type=Path, help="append the Markdown report here")
+    audit.add_argument("--dry-run", action="store_true", help="list planted errors; no judge calls")
+    audit.add_argument("--offline", action="store_true",
+                       help="judge only from the cache: no API calls, no keys needed")  # fmt: skip
+    # judge-audit never gates, so the same-family guard does not apply: measuring it is the point
+    audit.set_defaults(func=cmd_judge_audit, k=None, no_judge=False, allow_same_family=True,
+                       thresholds=None, baseline=None)  # fmt: skip
 
     compare = sub.add_parser("compare", help="gate a saved results file against a baseline")
     compare.add_argument("results", type=Path, help="results JSON from goldpass run")

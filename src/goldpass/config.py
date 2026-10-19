@@ -79,6 +79,7 @@ class Config:
     judging: Judging = field(default_factory=Judging)
     thresholds: Path | None = None
     baseline: Path | None = None  # a previous results JSON; skipped with a warning if absent
+    audit_sentences: tuple[tuple[str, str], ...] | None = None  # (marker, sentence) to plant
 
 
 # small, strict readers: unknown keys and wrong types are errors with a location
@@ -269,6 +270,10 @@ def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
     raise ConfigError(f"{where}.type: expected http, python or replay, got {kind!r}")
 
 
+CONFIG_KEYS = {"system", "golden", "out", "k", "generator", "judges", "judging", "thresholds",
+               "baseline", "audit"}  # fmt: skip
+
+
 def load_config(path: Path) -> Config:
     try:
         data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
@@ -277,21 +282,7 @@ def load_config(path: Path) -> Config:
     except yaml.YAMLError as e:
         raise ConfigError(f"{path}: invalid YAML: {e}") from e
     base = Path(path).parent
-    d = _section(
-        data,
-        str(path),
-        {
-            "system",
-            "golden",
-            "out",
-            "k",
-            "generator",
-            "judges",
-            "judging",
-            "thresholds",
-            "baseline",
-        },
-    )
+    d = _section(data, str(path), CONFIG_KEYS)
     if "system" not in d:
         raise ConfigError(f"{path}: needs a 'system' section")
     golden = _typed(d, "golden", str(path), str, None)
@@ -307,7 +298,26 @@ def load_config(path: Path) -> Config:
         judging=parse_judging(d.get("judges"), d.get("judging"), base),
         thresholds=_path(d, "thresholds", str(path), base),
         baseline=_path(d, "baseline", str(path), base),
+        audit_sentences=_sentences(d.get("audit"), "audit"),
     )
+
+
+def _sentences(data: Any, where: str) -> tuple[tuple[str, str], ...] | None:
+    d = _section(data, where, {"sentences"})
+    if "sentences" not in d:
+        return None
+    items = d["sentences"]
+    if not isinstance(items, list) or not items:
+        raise ConfigError(f"{where}.sentences: expected a non-empty list")
+    out = []
+    for i, it in enumerate(items):
+        e = _section(it, f"{where}.sentences[{i}]", {"marker", "sentence"})
+        marker = _typed(e, "marker", f"{where}.sentences[{i}]", str, "")
+        sentence = _typed(e, "sentence", f"{where}.sentences[{i}]", str, "")
+        if not marker or not sentence:
+            raise ConfigError(f"{where}.sentences[{i}]: needs a marker and a sentence")
+        out.append((marker, sentence))
+    return tuple(out)
 
 
 def _path(d: dict[str, Any], key: str, where: str, base: Path) -> Path | None:

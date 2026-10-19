@@ -1,0 +1,1236 @@
+{
+ "system": "gemini:gemini-3.5-flash-lite",
+ "source": "rail-regulation-rag CI run 38831471610 (eval/results/ci-38831471610.answers.json); trace ids, rewritten queries and latencies removed",
+ "records": [
+  {
+   "id": "q01",
+   "question": "What is the stationary noise limit LpAeq,T for an electric multiple unit (EMU)?",
+   "answer": "For electric multiple units (EMUs), the limit value for the A-weighted equivalent continuous sound pressure level of the unit (LpAeq,T[unit]) is 65 dB [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.1#1",
+     "doc_id": "tsi-noi"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8524,
+     "text": "NOI TSI, 4.2.1. Limits for stationary noise\nThe limit values for the following sound pressure levels under normal vehicle conditions concerning the stationary noise allocated to the categories of the rolling stock subsystem are set out in Table 2:\n(a) the A-weighted equivalent continuous sound pressure level of the unit (LpAeq,T[unit]);\n(b) the A-weighted equivalent continuous sound pressure level at the nearest measuring position i considering the main air compressor (Li pAeq,T);\n(c) the AF-weighted sound pressure level at the nearest measuring position i considering impulsive noise of the exhaust valve of the air dryer (Li pAFmax).\nThe limit values are set at a distance of 7,5 m from the centre of the track and 1,2 m above top of rail.\nTable 2\nLimit values for stationary noise\nCategory of the rolling stock subsystem | LpAeq,T[unit] [dB] | Li pAeq,T [dB] | Li pAFmax [dB]\nElectric locomotives and special vehicles with electric traction | 70 | 75 | 85\nDiesel locomotives and special vehicles with diesel traction | 71 | 78\nEMUs | 65 | 68\nDMUs | 72 | 76\nCoaches | 64 | 68\nWagons | 65 | n.a. | n.a.\nThe demonstration of conformity is described in point 6.2.2.1."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8524
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2.3#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8053
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2.4#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7929
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.776
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7722
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.1#2",
+     "doc_id": "tsi-noi",
+     "score": 0.7492
+    },
+    {
+     "passage_id": "tsi-noi:Annex §7.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7466
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7464
+    }
+   ]
+  },
+  {
+   "id": "q02",
+   "question": "What is the pass-by noise limit for freight wagons at 80 km/h?",
+   "answer": "The limit value for pass-by noise for wagons (normalised to APL = 0,225) at 80 km/h is 83 dB [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.3#1",
+     "doc_id": "tsi-noi"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.3#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8789,
+     "text": "NOI TSI, 4.2.3. Limits for pass-by noise\nThe limit values for the A-weighted equivalent continuous sound pressure level at a speed of 80 km/h (LpAeq,Tp,(80 km/h)) and, if applicable, at 250 km/h (LpAeq,Tp,(250 km/h)) concerning the pass-by noise allocated to the categories of the rolling stock subsystem are set out in Table 4. The limit values are set at a distance of 7,5 m from the centre of the track and 1,2 m above top of rail.\nMeasurements at speeds higher than or equal to 250 km/h shall also be made at the ‘additional measurement position’ with a height of 3,5 m above top of rail in accordance with the specification referenced in Appendix B, Index [1] and assessed against the applicable limit values of Table 4.\nTable 4\nLimit values for pass-by noise\nCategory of the rolling stock subsystem | LpAeq,Tp (80 km/h) [dB] | LpAeq,Tp (250 km/h) [dB]\nElectric locomotives and special vehicles with electric traction | 84 | 99\nDiesel locomotives and special vehicles with diesel traction | 85 | n.a.\nEMUs | 80 | 95\nDMUs | 81 | 96\nCoaches | 79 | n.a.\nWagons (normalised to APL = 0,225) (1) | 83 | n.a.\n(1) APL: the number of axles divided by the length over the buffers (m-1)\nThe demonstration of conformity is described in point 6.2.2.3."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-noi:Annex §4.2.3#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8789
+    },
+    {
+     "passage_id": "tsi-noi:Annex#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8527
+    },
+    {
+     "passage_id": "tsi-noi:Appendix B#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8479
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.3#2",
+     "doc_id": "tsi-noi",
+     "score": 0.8415
+    },
+    {
+     "passage_id": "tsi-noi:Annex §(b) Specific case Sweden#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8358
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8294
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8226
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.8153
+    }
+   ]
+  },
+  {
+   "id": "q03",
+   "question": "How wide must an escape walkway in a railway tunnel be, and how much headroom must it have?",
+   "answer": "The width of the escape walkway must be at least 0.8 m [1], and the minimum vertical clearance above the walkway must be 2.25 m [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.6#1",
+     "doc_id": "tsi-srt"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.6#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8151,
+     "text": "SRT TSI, 4.2.1.6. Escape walkways\nThis specification applies to all tunnels of more than 0,5 km in length.\n(a) Walkways shall be constructed in a single track tunnel tube on at least one side of the track and in a multiple track tunnel tube on both sides of the tunnel tube. In tunnel tubes with more than two tracks, access to a walkway shall be possible from each track. (1) The width of the walkway shall be at least 0.8 m. (2) The minimum vertical clearance above the walkway shall be 2.25 m. (3) The height of the walkway shall be at bottom -of-rail level or higher. (4) Local constrictions caused by obstacles in the escape area shall be avoided. The presence of obstacles shall not reduce the minimum width to less than 0,7 m, and the length of the obstacle shall not exceed 2 m.\n(b) Continuous handrails shall be installed between 0.8 m and 1.1 m above the walkway providing a route to a safe area. (1) Handrails shall be placed outside the required minimum clearance of the walkway. (2) Handrails shall be angled at 30° to 40° to the longitudinal axis of the tunnel at the entrance to and exit from an obstacle."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.6#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8151
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.2#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7981
+    },
+    {
+     "passage_id": "tsi-srt:Annex §2.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7909
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.779
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.5#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7643
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#3",
+     "doc_id": "tsi-srt",
+     "score": 0.7563
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#1",
+     "doc_id": "tsi-srt",
+     "score": 0.751
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7501
+    }
+   ]
+  },
+  {
+   "id": "q04",
+   "question": "For how long must the emergency lighting on tunnel escape routes keep working after the main power supply fails?",
+   "answer": "An alternative electricity supply for the emergency lighting must be available for an appropriate period of time after failure of the main supply, which must be consistent with the evacuation scenarios and reported in the Emergency Plan [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.4#1",
+     "doc_id": "tsi-srt"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7987,
+     "text": "SRT TSI, 4.2.1.5.4 Emergency lighting on escape routes\nThis specification applies to all tunnels of more than 0,5 km in length.\n(a) Emergency lighting shall be provided to guide passengers and staff to a safe area in the event of an emergency.\n(b) Illumination shall comply with the following requirements: (1) Single-track tube: on the side of the walkway (2) Multiple-track tube: on both sides of the tube (3) Position of lights: — above the walkway, as low as possible, so as not to interfere with the free space for the passage of persons, or — built into the handrails. (4) The maintained illuminance shall be at least 1 lux at a horizontal plane at walkway level.\n(c) Autonomy and reliability: an alternative electricity supply shall be available for an appropriate period of time after failure of the main supply. The time required shall be consistent with the evacuation scenarios and reported in the Emergency Plan.\n(d) If the emergency light is switched off under normal operating conditions, it shall be possible to switch it on by both of the following means: (1) manually from inside the tunnel at intervals of 250 m (2) by the tunnel operator using remote control"
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7987
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.10#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7838
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.9#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7688
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.5#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7465
+    },
+    {
+     "passage_id": "tsi-srt:Annex#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7404
+    },
+    {
+     "passage_id": "tsi-srt:Annex §2.2.2#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7279
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.4.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.727
+    },
+    {
+     "passage_id": "tsi-srt:Annex §1.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7247
+    }
+   ]
+  },
+  {
+   "id": "q05",
+   "question": "What is the maximum distance between evacuation and rescue points in a tunnel for Category A and for Category B passenger rolling stock, and what is the difference between the two categories?",
+   "answer": "For Category A passenger rolling stock, the maximum distance from the portals to an evacuation and rescue point and between evacuation and rescue points is 5 km, while for Category B passenger rolling stock it is 20 km [1]. Category A passenger rolling stock is for operation on lines where the distance between evacuation and rescue points or the length of tunnels does not exceed 5 km, whereas Category B passenger rolling stock is for operation in all tunnels irrespective of their length [2].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#1",
+     "doc_id": "tsi-srt"
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.3#1",
+     "doc_id": "tsi-srt"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8611,
+     "text": "SRT TSI, 4.2.1.7. Evacuation and rescue points\nThis specification applies to all tunnels of more than 1 km in length.\n(a) For the purpose of this clause, two or more consecutive tunnels will be considered as a single tunnel unless both of the following conditions are met: (1) The separation between tunnels in open air is longer than the maximum length of the passenger train intended to be operated on the line + 100 m and (2) The open air area and track situation around the separation between tunnels allow passengers to move away from the train along a a safe space . The open air area shall contain all passengers of the maximum capacity of the train intended to be operated on the line.\n(b) Evacuation and rescue points shall be created (1) Outside both portals of every tunnel of > 1 km and (2) Inside the tunnel, according to the category of rolling stock that is planned to be operated, as summarized in the table below: Rolling stock category according to paragraph 4.2.3 | Maximum distance from the portals to an evacuation and rescue point and between evacuation and rescue points Category A | 5 km Category B | 20 km"
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.3#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8238,
+     "text": "SRT TSI, 4.2.3. Subsystem rolling stock\n(a) In the context of this TSI the subsystem rolling stock is subdivided into the following categories. (1) Category A passenger rolling stock (including passenger locomotives) for operation on lines within the scope of this TSI, where the distance between evacuation and rescue points or the length of tunnels does not exceed 5 km. (2) Category B passenger rolling stock (including passenger locomotives) for operation in all tunnels on lines within the scope of this TSI, irrespective of the length of the tunnels. (3) Freight locomotives and self-propelling units designed to carry payload other than passengers, such as mail and freight for example, for operation in all tunnels on lines within the scope of this TSI, irrespective of the length of the tunnels. Locomotives designed to haul freight trains as well as passenger trains fall under both categories and shall respect the requirements of both categories. (4) Self-powered on-track machines, when in transport mode, for operation in all tunnels on lines within the scope of this TSI, irrespective of the length of the tunnels.\n(b) The rolling stock category shall be recorded in the technical file and will remain valid regardless of future revisions of this TSI."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8611
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.4.6#2",
+     "doc_id": "tsi-srt",
+     "score": 0.8279
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.3#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8238
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.4.6#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8142
+    },
+    {
+     "passage_id": "tsi-srt:Annex §2.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.81
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#3",
+     "doc_id": "tsi-srt",
+     "score": 0.8026
+    },
+    {
+     "passage_id": "tsi-srt:Annex §7#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7925
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#2",
+     "doc_id": "tsi-srt",
+     "score": 0.7882
+    }
+   ]
+  },
+  {
+   "id": "q06",
+   "question": "How many wheelchair spaces must a 250 m long passenger unit have?",
+   "answer": "For a unit length of more than 205 to 300 metres, there must be 3 wheelchair spaces [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.2#1",
+     "doc_id": "tsi-prm"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.2#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8494,
+     "text": "PRM TSI, 4.2.2.2. Wheelchair spaces\n(1) According to the length of the unit, excluding the locomotive or power head, there shall be in that unit not less than the number of accessible wheelchair spaces shown in the following table: Table 5 Minimum number of wheelchair spaces per unit length Unit length | Number of wheelchair spaces by unit Less than 30 m | 1 wheelchair space 30 to 205 metres | 2 wheelchair spaces More than 205 to 300 metres | 3 wheelchair spaces More than 300 metres | 4 wheelchair spaces\n(2) To ensure stability, the wheelchair space shall be designed for the wheelchair to be positioned either facing or back to the direction of travel.\n(3) Over the full length of the wheelchair space the width shall be 700 mm from floor level to a minimum height of 1 450 mm with an additional 50 mm width to give clearance for hands on each side that is adjacent to any obstacle that will inhibit clearance for the wheelchair users hands (e.g. wall or structure) from a height of 400 mm to 800 mm above floor level (if one side of the wheelchair is adjacent to the aisle there is no additional 50 mm requirement for that side of the wheelchair as it is already free space).\n(4) The minimum distance in the longitudinal plane between the back of the wheelchair space and the next surface shall be in accordance with the specification referenced in Appendix A, Index [16]."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.2#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8494
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.2#3",
+     "doc_id": "tsi-prm",
+     "score": 0.7881
+    },
+    {
+     "passage_id": "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7742
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.2#2",
+     "doc_id": "tsi-prm",
+     "score": 0.7718
+    },
+    {
+     "passage_id": "tsi-prm:Appendix F §Wheelchair spaces#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7615
+    },
+    {
+     "passage_id": "tsi-prm:Appendix M §M.2 CHARACTERISTICS#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7519
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.4.2.18#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7506
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.1.1#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7471
+    }
+   ]
+  },
+  {
+   "id": "q07",
+   "question": "What is the minimum clear usable width of exterior passenger doors, and of wheelchair access doors with level access?",
+   "answer": "All exterior passenger doorways shall have a minimum clear useable width of 800 mm when open [1]. On trains with a design speed lower than 250 km/h, wheelchair access doors offering a level access shall have a minimum clear useable width of 1 000 mm when open [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.3.2#1",
+     "doc_id": "tsi-prm"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.3.2#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8799,
+     "text": "PRM TSI, 4.2.2.3.2. Exterior doors\n(1) All exterior passenger doorways shall have a minimum clear useable width of 800 mm when open.\n(2) On trains with a design speed lower than 250 km/h, wheelchair access doors offering a level access as defined in point 2.3 shall have a minimum clear useable width of 1 000 mm when open.\n(3) All exterior passenger doorways shall be marked on the outside in a way that gives a contrast to the vehicle body-side surrounding them.\n(4) The designated wheelchair exterior accessible doorways shall be the closest doorways to the designated wheelchair spaces.\n(5) The doors to be used for wheelchair access shall be clearly labelled with a sign in accordance with Appendix N.\n(6) From the inside of the vehicle the position of external doorways shall clearly be marked by use of contrasted adjacent flooring.\n(7) Audible and visible signals shall be given to persons inside and outside the train when doors are operated or about to operate.\n(8) The door operating signals are the following:\n(a) when a door is released for opening, a door opening signal shall be given; it shall last a minimum of 5 seconds unless the door is operated, in which case it may cease after 3 seconds;\n(b) when a door is automatically or remotely opened by the driver or other member of the train crew, a door opening signal shall be given; it shall last a minimum of 3 seconds from the moment that the door starts to open;"
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.3.2#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8799
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.1.3#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8659
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.3.3#1",
+     "doc_id": "tsi-prm",
+     "score": 0.8447
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.6#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7961
+    },
+    {
+     "passage_id": "tsi-prm:Annex §5.3.2.3#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7925
+    },
+    {
+     "passage_id": "tsi-prm:Appendix E §E.2 CHARACTERISTICS AND MODULES#2",
+     "doc_id": "tsi-prm",
+     "score": 0.7723
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2#1",
+     "doc_id": "tsi-prm",
+     "score": 0.7706
+    },
+    {
+     "passage_id": "tsi-prm:Annex §3#3",
+     "doc_id": "tsi-prm",
+     "score": 0.7674
+    }
+   ]
+  },
+  {
+   "id": "q08",
+   "question": "Which traction power supply systems does the Energy TSI allow, and which may be used on new lines faster than 250 km/h?",
+   "answer": "New lines with a speed greater than 250 km/h must be supplied with one of the AC systems listed in point 4.2.3 (a) and (b) [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-ene:Annex §7.1.1#1",
+     "doc_id": "tsi-ene"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-ene:Annex §7.1.1#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7686,
+     "text": "ENE TSI, 7.1.1. Implementation rules for voltage and frequency\nNew lines with speed greater than 250 km/h shall be supplied with one of the AC systems listed in point 4.2.3 (a) and (b)."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-ene:Annex §7.1.1#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7686
+    },
+    {
+     "passage_id": "tsi-ene:Annex §7.2#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7656
+    },
+    {
+     "passage_id": "tsi-ene:Annex §4.3.2#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7524
+    },
+    {
+     "passage_id": "tsi-ene:Annex#1",
+     "doc_id": "tsi-ene",
+     "score": 0.749
+    },
+    {
+     "passage_id": "tsi-ene:Annex §2.1#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7479
+    },
+    {
+     "passage_id": "tsi-ene:Annex §2.1.1#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7373
+    },
+    {
+     "passage_id": "tsi-ene:Annex §4.2.2#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7293
+    },
+    {
+     "passage_id": "tsi-ene:Annex §7.3.1#1",
+     "doc_id": "tsi-ene",
+     "score": 0.7275
+    }
+   ]
+  },
+  {
+   "id": "q09",
+   "question": "What are the Class A train protection and radio systems under the CCS TSI?",
+   "answer": "The Class A train protection system is ETCS (European Train Control System), and the Class A radio system is RMR (Railway Mobile Radio system) [1]. RMR comprises two radio class A systems, which are GSM-R and FRMCS (Future Railway Mobile Communication System) [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-ccs:Annex I §2.2#1",
+     "doc_id": "tsi-ccs"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-ccs:Annex I §2.2#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8743,
+     "text": "CCS TSI, 2.2. Scope\nThe Control-Command and Signalling Subsystem TSI specifies only those requirements which are necessary to assure the interoperability of the Union rail system and the compliance with the essential requirements ( 2 ).\nThe Control-Command and Signalling Subsystems include the following parts:\n(1) train protection;\n(2) voice radio communication;\n(3) data radio communication;\n(4) train detection;\n(5) automated train operation ( 3 ).\nERTMS (European Rail Traffic Management System) is composed of train protection (ETCS), radio communication (RMR) and automated train operation (ATO).\nThe Class A train protection system is ETCS (European Train Control System) ( 4 ) whilst the Class A radio system is RMR (Railway Mobile Radio system). In this TSI, RMR comprises two radio class A systems: GSM-R and FRMCS (Future Railway Mobile Communication System) that may be implemented both at the same time or each of them independently ( 5 ).\nFor train detection, this TSI specifies only the requirements for the interface with other subsystems.\nThe list of Class B systems is established in the Annex II to this regulation.\nThe requirements for the Control-Command and Signalling On-board Subsystem are specified in relation to Class A radio mobiles, train protection and automatic train operation.\nThe requirements for the Control-Command and Signalling Trackside Subsystem are specified in relation to:\n(1) the Class A radio network;\n(2) the Class A train protection;\n(3) the Class A automated train operation;\n(4) the interface requirements for train detection systems, to ensure their compatibility with rolling stock."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-ccs:Annex I §2.2#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8743
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §4.1.2#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8463
+    },
+    {
+     "passage_id": "tsi-ccs:Appendix H §— Current status of deployment for Class A train protection system#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8338
+    },
+    {
+     "passage_id": "tsi-ccs:Annex II §1#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8268
+    },
+    {
+     "passage_id": "tsi-ccs:Appendix H §2.1.1#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8183
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §4.1.3#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8143
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §1.1#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.814
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §4.1.1#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.8132
+    }
+   ]
+  },
+  {
+   "id": "q10",
+   "question": "How must the rear end of a passenger train and of a freight train be signalled?",
+   "answer": "The rear end signal of a passenger train shall consist of 2 steady red lights at the same height above buffer on the transversal axis [1]. The rear end signal of a freight train shall consist of 2 reflective plates at the same height above buffer on the transversal axis, though any train equipped with 2 steady red lights is also considered to comply with this obligation [2].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.1#1",
+     "doc_id": "tsi-ope"
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.2#1",
+     "doc_id": "tsi-ope"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8227,
+     "text": "OPE TSI, 4.2.2.1.3.1. Passenger trains\nThe rear end signal of a passenger train shall consist of 2 steady red lights at the same height above buffer on the transversal axis."
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8038,
+     "text": "OPE TSI, 4.2.2.1.3.2. Freight trains\nThe rear end signal of a freight train shall consist of 2 reflective plates at the same height above buffer on the transversal axis. Any train equipped with 2 steady red lights shall also be considered to comply with this obligation.\nReflective plates shall comply with Appendix E to Wagon TSI and have the following shape with white side triangles and red top and bottom triangle:\nThe plates shall be on the same height above buffer on the transversal axis"
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8227
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8208
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8038
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7686
+    },
+    {
+     "passage_id": "tsi-ope:Annex §7.2.2.4#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7637
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.3.3.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7546
+    },
+    {
+     "passage_id": "tsi-ope:Annex §7.2.2.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7507
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7485
+    }
+   ]
+  },
+  {
+   "id": "q11",
+   "question": "From when must freight trains with reflective plates as the rear-end signal be accepted in Portugal, and across the whole EU network?",
+   "answer": "Freight trains with reflective plates as the rear-end signal must be accepted in Portugal from 1 January 2025, and across the whole European Union rail network from 1 January 2026 [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-ope:Annex §Phasing out:#1",
+     "doc_id": "tsi-ope"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-ope:Annex §Phasing out:#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8321,
+     "text": "OPE TSI, Phasing out:\nThe following deadlines shall apply for accepting freight trains equipped with two reflective plates:\n(1) From 1 January 2022, along the rail freight corridors specified in accordance with Regulation (EU) No 913/2010, with the following exceptions on the lines where steady red lights are an operational requirement for ensuring safety: (a) 1 January 2026 for Belgium and France; (b) 1 January 2025 for Portugal and Spain.\n(2) From 1 January 2026, in the whole European Union rail network.\nMember States concerned by the exceptions under (1) (a) and (b) shall provide, by 1 March 2022 at the latest, the Commission with a detailed action plan and precise targets ensuring the elimination of the requirement for red lights as rear end signals. Every 6 months thereafter, those Member States shall provide the Commission with a report on progress made on the use of reflective plates on their network with the aim of Union-level harmonisation of rear end signals by 1 January 2026. Stakeholders shall provide all necessary input to allow Member States to fulfil their reporting duty.\nThe Commission shall report to the committee referred to in Article 51 of Directive (EU) 2016/797 on the implementation progress of section 4.2.2.1."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8555
+    },
+    {
+     "passage_id": "tsi-ope:Annex §7.2.2.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8438
+    },
+    {
+     "passage_id": "tsi-ope:Annex §Phasing out:#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8321
+    },
+    {
+     "passage_id": "tsi-ope:Annex §7.2.2.4#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7861
+    },
+    {
+     "passage_id": "tsi-ope:Annex §Specific cases:#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7713
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7676
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.1.3.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7635
+    },
+    {
+     "passage_id": "tsi-ope:Annex §Cooperation with neighbouring countries:#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7632
+    }
+   ]
+  },
+  {
+   "id": "q12",
+   "question": "How quickly must the Agency handle an application for a vehicle authorisation for placing on the market?",
+   "answer": "The Agency shall issue the vehicle authorisation for placing on the market, or inform the applicant of its negative decision, within a predetermined, reasonable time, and in any case within four months of receipt of all relevant information [1][2].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "iop-directive:Article 21#3",
+     "doc_id": "iop-directive"
+    },
+    {
+     "passage_id": "iop-directive:Article 21#5",
+     "doc_id": "iop-directive"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "iop-directive:Article 21#3",
+     "doc_id": "iop-directive",
+     "score": 0.8214,
+     "text": "Interoperability Directive, Article 21 — Vehicle authorisation for placing on the market\nWhenever tests are necessary in order to obtain documentary evidence of the technical compatibility referred to in points (b) and (d) of the first subparagraph, the national safety authorities involved may issue temporary authorisations to the applicant to use the vehicle for practical verifications on the network. The infrastructure manager, in consultation with the applicant, shall make every effort to ensure that any tests take place within three months of receipt of the applicant's request. Where appropriate, the national safety authority shall take measures to ensure that the tests take place.\n4. The Agency or, in the case of paragraph 8, the national safety authority shall issue vehicle authorisations for placing on the market or inform the applicant of its negative decision within a predetermined, reasonable time, and in any case within four months of receipt of all relevant information from the applicant. The Agency, or, in the cases provided for in paragraph 8, the national safety authority, shall apply the practical arrangements on the authorisation procedure to be established in an implementing act, as referred to in paragraph 9. Those authorisations shall allow vehicles to be placed on the Union market."
+    },
+    {
+     "passage_id": "iop-directive:Article 21#5",
+     "doc_id": "iop-directive",
+     "score": 0.8111,
+     "text": "Interoperability Directive, Article 21 — Vehicle authorisation for placing on the market\n6. Within one month of receipt of the applicant's request, the Agency shall inform the applicant that the file is complete or ask for relevant supplementary information, setting a reasonable deadline for the provision thereof. With regard to the completeness, relevance and consistency of the file, the Agency may also assess the elements specified in point (d) of paragraph 3.\nThe Agency shall take full account of the assessments under paragraph 5 before taking its decision on the issuance of the vehicle authorisation for placing on the market. The Agency shall issue the authorisation for placing on the market, or inform the applicant of its negative decision, within a predetermined, reasonable time, and in any case within four months of receipt of all relevant information.\nIn the event of non-application of one or more TSIs or parts of them as referred to in Article 7, the Agency shall issue the vehicle authorisation only after application of the procedure laid down in that Article.\nThe Agency shall take full responsibility for the authorisations it issues."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "iop-directive:Article 21#1",
+     "doc_id": "iop-directive",
+     "score": 0.8373
+    },
+    {
+     "passage_id": "iop-directive:Article 21#3",
+     "doc_id": "iop-directive",
+     "score": 0.8214
+    },
+    {
+     "passage_id": "iop-directive:Article 21#4",
+     "doc_id": "iop-directive",
+     "score": 0.813
+    },
+    {
+     "passage_id": "iop-directive:Article 21#8",
+     "doc_id": "iop-directive",
+     "score": 0.8113
+    },
+    {
+     "passage_id": "iop-directive:Article 21#5",
+     "doc_id": "iop-directive",
+     "score": 0.8111
+    },
+    {
+     "passage_id": "iop-directive:Article 21#10",
+     "doc_id": "iop-directive",
+     "score": 0.8083
+    },
+    {
+     "passage_id": "iop-directive:Article 21#11",
+     "doc_id": "iop-directive",
+     "score": 0.8074
+    },
+    {
+     "passage_id": "iop-directive:Article 26#4",
+     "doc_id": "iop-directive",
+     "score": 0.807
+    }
+   ]
+  },
+  {
+   "id": "q13",
+   "question": "How long does the Commission have to decide on a Member State's request not to apply a TSI, and what happens if it does not decide in time?",
+   "answer": "I can't answer that from the indexed EU railway regulations. The question may be outside their scope, or the answer may be in a document that isn't indexed.",
+   "refused": true,
+   "refusal_reason": "no_relevant_passages",
+   "citations": [],
+   "contexts": [],
+   "hits": [
+    {
+     "passage_id": "tsi-ene:Article 6#1",
+     "doc_id": "tsi-ene",
+     "score": 0.737
+    },
+    {
+     "passage_id": "tsi-noi:Article 9#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7227
+    },
+    {
+     "passage_id": "iop-directive:Article 7#3",
+     "doc_id": "iop-directive",
+     "score": 0.7208
+    },
+    {
+     "passage_id": "iop-directive:Article 26#2",
+     "doc_id": "iop-directive",
+     "score": 0.7177
+    },
+    {
+     "passage_id": "tsi-ope:Article 5#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7175
+    },
+    {
+     "passage_id": "tsi-noi:Article 2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.7166
+    },
+    {
+     "passage_id": "iop-directive:Article 26#3",
+     "doc_id": "iop-directive",
+     "score": 0.7157
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §3.3.5#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.7157
+    }
+   ]
+  },
+  {
+   "id": "q14",
+   "question": "What minimum clear opening must the doors between a tunnel escape walkway and the safe area have?",
+   "answer": "Doors giving access from the escape walkway to the safe area shall have a minimum clear opening of 1,4 m wide and 2,0 m high [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.2#1",
+     "doc_id": "tsi-srt"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.2#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8423,
+     "text": "SRT TSI, 4.2.1.5.2 Access to the safe area\nThis specification applies to all tunnels of more than 1 km in length.\n(a) Safe areas shall be accessible for people who commence self-evacuation from the train as well as for the emergency response services.\n(b) One of the following solutions shall be selected for access points from a train to the safe area: (1) Lateral and/or vertical emergency exits to the surface. These exits shall be provided at least every 1 000 m. (2) Cross-passages between adjacent independent tunnel tubes, which enable the adjacent tunnel tube to be employed as a safe area. Cross-passages shall be provided at least every 500 m. —————\n(c) Doors giving access from the escape walkway to the safe area shall have a minimum clear opening of 1,4 m wide and 2,0 m high. Alternatively it is permitted to use multiple doors next to each other which are less wide as long as the flow capacity of people is demonstrated to be equivalent or higher.\n(d) After passing the doors, the clear width shall continue to be at least 1,5 m wide and 2,25 m high.\n(e) The way in which the emergency response services access the safe area shall be described in the emergency plan."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.2#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8423
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8241
+    },
+    {
+     "passage_id": "tsi-srt:Annex §2.4#1",
+     "doc_id": "tsi-srt",
+     "score": 0.819
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.6#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8082
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#3",
+     "doc_id": "tsi-srt",
+     "score": 0.8073
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8024
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.5.5#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7945
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.2.1.7#1",
+     "doc_id": "tsi-srt",
+     "score": 0.7914
+    }
+   ]
+  },
+  {
+   "id": "q15",
+   "question": "When does an upgraded or renewed vehicle that is already authorised need a new vehicle authorisation for placing on the market?",
+   "answer": "A new vehicle authorisation for placing on the market is required for renewed or upgraded vehicles if: (a) changes are made to the values of the parameters referred to in point (b) of paragraph 10 which are outside the range of acceptable parameters as defined in the TSIs; (b) the overall safety level of the vehicle concerned may be adversely affected by the works envisaged; or (c) it is required by the relevant TSIs [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "iop-directive:Article 21#11",
+     "doc_id": "iop-directive"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "iop-directive:Article 21#11",
+     "doc_id": "iop-directive",
+     "score": 0.8415,
+     "text": "Interoperability Directive, Article 21 — Vehicle authorisation for placing on the market\n12. In the event of renewal or upgrading of existing vehicles which already have a vehicle authorisation for placing on the market, a new vehicle authorisation for placing on the market shall be required if: (a) changes are made to the values of the parameters referred to in point (b) of paragraph 10 which are outside the range of acceptable parameters as defined in the TSIs; (b) the overall safety level of the vehicle concerned may be adversely affected by the works envisaged; or (c) it is required by the relevant TSIs.\n13. Where the applicant wishes to extend the area of use of a vehicle which has already been authorised, it shall supplement the file with the relevant documents referred to in paragraph 3 concerning the additional area of use. The applicant shall submit the file to the Agency, which shall, after following the procedures laid down in paragraphs 4 to 7, issue an updated authorisation covering the extended area of use.\nIf the applicant has received a vehicle authorisation in accordance with paragraph 8 and wishes to extend the area of use within that Member State, it shall supplement the file with the relevant documents referred to in paragraph 3 concerning the additional area of use. It shall submit the file to the national safety authority which shall, after following the procedures laid down in paragraph 8, issue an updated authorisation covering the extended area of use."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "iop-directive:Article 21#11",
+     "doc_id": "iop-directive",
+     "score": 0.8415
+    },
+    {
+     "passage_id": "iop-directive:Article 54#1",
+     "doc_id": "iop-directive",
+     "score": 0.8233
+    },
+    {
+     "passage_id": "iop-directive:Article 21#1",
+     "doc_id": "iop-directive",
+     "score": 0.8177
+    },
+    {
+     "passage_id": "iop-directive:Article 21#2",
+     "doc_id": "iop-directive",
+     "score": 0.8049
+    },
+    {
+     "passage_id": "iop-directive:Article 22#1",
+     "doc_id": "iop-directive",
+     "score": 0.7988
+    },
+    {
+     "passage_id": "iop-directive:Article 26#4",
+     "doc_id": "iop-directive",
+     "score": 0.7946
+    },
+    {
+     "passage_id": "iop-directive:Article 21#9",
+     "doc_id": "iop-directive",
+     "score": 0.7884
+    },
+    {
+     "passage_id": "iop-directive:Article 21#4",
+     "doc_id": "iop-directive",
+     "score": 0.7872
+    }
+   ]
+  },
+  {
+   "id": "q16",
+   "question": "Which language must train crew use for safety-related communication with the staff authorising train movements?",
+   "answer": "The language used for safety-related communication between train crew and the staff authorising train movements is the operating language(s) used by the infrastructure manager on the route concerned [1].",
+   "refused": false,
+   "refusal_reason": null,
+   "citations": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.1.5#1",
+     "doc_id": "tsi-ope"
+    }
+   ],
+   "contexts": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.1.5#1",
+     "doc_id": "tsi-ope",
+     "score": 0.9063,
+     "text": "OPE TSI, 4.2.1.5. Safety-related communications between train crew, other railway undertaking staff and staff authorising train movements\nThe language used for safety-related communication between train crew, other railway undertaking staff (as defined in Appendix G) and the staff authorising train movements is the operating language(s) (as defined in Appendix J) used by the infrastructure manager on the route concerned.\nThe principles for safety-related communication between train crew and staff responsible for authorising the movement of trains are to be found in Appendix C.\nIn accordance with Directive 2012/34/EU, the infrastructure manager is responsible for publishing the ‘operating’ language(s) used by its personnel in daily operational use.\nWhere, however, local practice requires that a second language is also provided for, it is the responsibility of the infrastructure manager to determine the geographic boundaries for its use."
+    }
+   ],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.1.5#1",
+     "doc_id": "tsi-ope",
+     "score": 0.9063
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.6.1#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8284
+    },
+    {
+     "passage_id": "tsi-srt:Annex §4.4.5#1",
+     "doc_id": "tsi-srt",
+     "score": 0.8202
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.6.2.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8049
+    },
+    {
+     "passage_id": "tsi-ope:Appendix C §1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.8023
+    },
+    {
+     "passage_id": "tsi-ope:Annex §3.2#2",
+     "doc_id": "tsi-ope",
+     "score": 0.7981
+    },
+    {
+     "passage_id": "tsi-ope:Appendix G §3#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7923
+    },
+    {
+     "passage_id": "tsi-ope:Appendix F §3#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7894
+    }
+   ]
+  },
+  {
+   "id": "q17",
+   "question": "What is the capital of France?",
+   "answer": "I can't answer that from the indexed EU railway regulations. The question may be outside their scope, or the answer may be in a document that isn't indexed.",
+   "refused": true,
+   "refusal_reason": "low_retrieval_score",
+   "citations": [],
+   "contexts": [],
+   "hits": [
+    {
+     "passage_id": "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network (2)#1",
+     "doc_id": "tsi-prm",
+     "score": 0.5926
+    },
+    {
+     "passage_id": "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network#1",
+     "doc_id": "tsi-prm",
+     "score": 0.582
+    },
+    {
+     "passage_id": "tsi-noi:Annex §(d) Particular implementation rules for wagons operated on quieter routes of France#1",
+     "doc_id": "tsi-noi",
+     "score": 0.5601
+    },
+    {
+     "passage_id": "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network (3)#1",
+     "doc_id": "tsi-prm",
+     "score": 0.5567
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §7.7.2.3#2",
+     "doc_id": "tsi-ccs",
+     "score": 0.5562
+    },
+    {
+     "passage_id": "tsi-ccs:Annex II §3.3#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.5551
+    },
+    {
+     "passage_id": "tsi-noi:Annex §(a) Specific case Channel Tunnel#1",
+     "doc_id": "tsi-noi",
+     "score": 0.5282
+    },
+    {
+     "passage_id": "tsi-ope:Appendix H §5#1",
+     "doc_id": "tsi-ope",
+     "score": 0.5268
+    }
+   ]
+  },
+  {
+   "id": "q18",
+   "question": "What GDPR obligations apply to railway undertakings that process passenger personal data?",
+   "answer": "I can't answer that from the indexed EU railway regulations. The question may be outside their scope, or the answer may be in a document that isn't indexed.",
+   "refused": true,
+   "refusal_reason": "no_relevant_passages",
+   "citations": [],
+   "contexts": [],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.7.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7674
+    },
+    {
+     "passage_id": "tsi-ope:Annex §7.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7345
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.7.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7324
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.5.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7308
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.5.1#2",
+     "doc_id": "tsi-ope",
+     "score": 0.7202
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.3.4.2.1#2",
+     "doc_id": "tsi-ope",
+     "score": 0.7199
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.1.2.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7179
+    },
+    {
+     "passage_id": "tsi-ope:Appendix A §6.4.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7159
+    }
+   ]
+  },
+  {
+   "id": "q19",
+   "question": "Which collision scenarios must a locomotive's crashworthiness design withstand?",
+   "answer": "I can't answer that from the indexed EU railway regulations. The question may be outside their scope, or the answer may be in a document that isn't indexed.",
+   "refused": true,
+   "refusal_reason": "no_relevant_passages",
+   "citations": [],
+   "contexts": [],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Annex §4.3.3.1#1",
+     "doc_id": "tsi-ope",
+     "score": 0.71
+    },
+    {
+     "passage_id": "tsi-ope:Annex#1",
+     "doc_id": "tsi-ope",
+     "score": 0.7098
+    },
+    {
+     "passage_id": "tsi-ope:Annex §3.2#3",
+     "doc_id": "tsi-ope",
+     "score": 0.7044
+    },
+    {
+     "passage_id": "tsi-ccs:Annex I §7.7.2.8#1",
+     "doc_id": "tsi-ccs",
+     "score": 0.7005
+    },
+    {
+     "passage_id": "tsi-prm:Appendix M §M.1 SCOPE#1",
+     "doc_id": "tsi-prm",
+     "score": 0.6979
+    },
+    {
+     "passage_id": "tsi-prm:Annex §4.2.2.11.1#3",
+     "doc_id": "tsi-prm",
+     "score": 0.6974
+    },
+    {
+     "passage_id": "tsi-ope:Annex §3.2#2",
+     "doc_id": "tsi-ope",
+     "score": 0.6946
+    },
+    {
+     "passage_id": "tsi-noi:Annex#1",
+     "doc_id": "tsi-noi",
+     "score": 0.6938
+    }
+   ]
+  },
+  {
+   "id": "q20",
+   "question": "What is the maximum line speed on the Lisbon–Porto line?",
+   "answer": "I can't answer that from the indexed EU railway regulations. The question may be outside their scope, or the answer may be in a document that isn't indexed.",
+   "refused": true,
+   "refusal_reason": "no_relevant_passages",
+   "citations": [],
+   "contexts": [],
+   "hits": [
+    {
+     "passage_id": "tsi-ope:Appendix A §4.2#3",
+     "doc_id": "tsi-ope",
+     "score": 0.6517
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.1#2",
+     "doc_id": "tsi-noi",
+     "score": 0.6447
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.6411
+    },
+    {
+     "passage_id": "tsi-noi:Annex §6.2.2.3.2.1#1",
+     "doc_id": "tsi-noi",
+     "score": 0.6408
+    },
+    {
+     "passage_id": "tsi-noi:Article 5b#1",
+     "doc_id": "tsi-noi",
+     "score": 0.6394
+    },
+    {
+     "passage_id": "tsi-ope:Annex §4.2.2.6.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.6357
+    },
+    {
+     "passage_id": "tsi-ope:Appendix A §4.2#1",
+     "doc_id": "tsi-ope",
+     "score": 0.6343
+    },
+    {
+     "passage_id": "tsi-noi:Annex §4.2.2#1",
+     "doc_id": "tsi-noi",
+     "score": 0.632
+    }
+   ]
+  }
+ ]
+}

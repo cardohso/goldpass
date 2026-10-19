@@ -133,7 +133,9 @@ class LLMJudge:
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
         log: Callable[[str], None] | None = None,
+        offline: bool = False,
     ):
+        self.offline = offline  # answer only from the cache; a miss is an error, never a call
         self.spec = spec
         self.name = spec.name
         self.family = spec.family
@@ -200,6 +202,8 @@ class LLMJudge:
         key = cache_key({"v": PROMPT_VERSION, "base_url": self.spec.base_url, **payload})
         if (hit := self.cache.get(key)) is not None:
             return parse_json(hit)
+        if self.offline:
+            raise JudgeError("not in the judge cache (offline: no API call made)")
         for attempt in range(MALFORMED_RETRIES + 1):
             content = self._post(payload)
             try:
@@ -218,7 +222,9 @@ class LLMJudge:
         """None when the answer makes no factual claims (nothing to be faithful about)."""
         answer = self._clean(answer)
         got = self.chat(CLAIMS_SYSTEM, CLAIMS_USER.format(question=question, answer=answer))
-        claims = got.get("claims") if isinstance(got, dict) else None
+        claims = (
+            got if isinstance(got, list) else got.get("claims") if isinstance(got, dict) else None
+        )
         if not isinstance(claims, list) or not all(isinstance(c, str) for c in claims):
             raise JudgeError(f"claims reply has no list of strings: {got!r:.200}")
         claims = [c.strip() for c in claims if c.strip()]
@@ -227,7 +233,10 @@ class LLMJudge:
         passages = "\n\n".join(f"[{i}] {c}" for i, c in enumerate(contexts, start=1))
         numbered = "\n".join(f"{i}. {c}" for i, c in enumerate(claims, start=1))
         got = self.chat(VERDICTS_SYSTEM, VERDICTS_USER.format(passages=passages, claims=numbered))
-        verdicts = got.get("verdicts") if isinstance(got, dict) else None
+        # some models return the bare list instead of {"verdicts": [...]}
+        verdicts = (
+            got if isinstance(got, list) else got.get("verdicts") if isinstance(got, dict) else None
+        )
         if not isinstance(verdicts, list):
             raise JudgeError(f"verdicts reply has no list: {got!r:.200}")
         supported: dict[int, bool] = {}

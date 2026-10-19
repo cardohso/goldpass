@@ -146,6 +146,28 @@ only grounding and answer/refusal rates are gated there. The first manual run
 grounding 1.00 (n=16), answered rate 1.00 (n=16), refusal rate 1.00 (n=4), 0 errors, with
 retrieval metrics skipped on the 16 `answer` questions.
 
+## Is the judge any good?
+
+`goldpass judge-audit` plants one unsupported claim in copies of real answers (a changed number,
+or an appended sentence) and counts how often each judge still scores the copy as faithful as
+the original. On the 15 answered questions of the recorded rail run (28 planted errors;
+reproduce with no keys: `goldpass judge-audit --config examples/rail/audit/goldpass.yaml --offline`):
+
+| Judge | Family | Missed | Miss rate (95% CI) | Mean drop in faithfulness |
+|---|---|---|---|---|
+| Groq `openai/gpt-oss-120b` | openai | 0 of 28 | 0.00 (0.00–0.12) | 0.49 |
+| Gemini `gemini-3.5-flash-lite` | google, **the model that wrote the answers** | 1 of 28 | 0.04 (0.01–0.18) | 0.43 |
+
+Both judges scored all 15 unmodified answers 1.00. The only miss was an appended "It started as a
+voluntary pilot…" sentence that the same-model judge let through; an exact McNemar test on the
+paired results gives p = 1.00. So on errors this blunt, with 28 of them, there is **no detectable
+self-preference, and the test cannot rule one out**: the miss-rate intervals reach 0.12 and
+0.18. Subtler planted errors and more questions are the next step.
+
+The audit also audited itself: in the first run, one planted "error" changed "speed greater than
+250 km/h" to "greater than 260 km/h", which the passage still implies, and the judge correctly
+accepted it. Numbers after lower-bound conditions are now never changed.
+
 ## Design decisions
 
 - **Deterministic first.** Gold passage and document ids make retrieval and grounding
@@ -180,11 +202,9 @@ What is synthetic, untested or simplified, stated plainly:
 - **The fake RAG service is synthetic.** Its corpus documents a product that does not exist, and
   its "generator" quotes the best passage. It exists to show the gate passing and failing,
   not as a benchmark.
-- **The judges are lightly validated.** Unit tests use a fake OpenAI-compatible API. Against
-  real APIs, only a smoke test has been run: Groq `openai/gpt-oss-120b` and Gemini
-  `gemini-3.5-flash-lite` on 2 recorded rail answers, both scoring 1.0. That shows the
-  integration works, not that the judge separates good answers from bad ones. Faithfulness
-  prompts follow RAGAS, but agreement with human labels has not been measured.
+- **The judges are validated only on simple planted errors.** `judge-audit` shows both tested
+  judges catch 27–28 of 28 mechanical errors on real rail answers (see above). Agreement with
+  human labels, and with subtler unsupported claims, has not been measured.
 - **Answer relevancy is a rubric, not RAGAS' embedding metric.** Its numbers are not comparable
   with RAGAS'.
 - **Model families are inferred from model names** with a short pattern list. Unknown names
@@ -199,8 +219,8 @@ What is synthetic, untested or simplified, stated plainly:
 
 ## Next steps
 
-- Measure judge agreement with human labels on a labelled answer set, and add the planted-error
-  perturbation test from the rail repo as a `goldpass judge-audit` command.
+- Harder planted errors for `judge-audit` (swapped conditions, wrong document cited, partial
+  answers), and judge agreement with human labels on a labelled answer set.
 - Concurrency with a per-provider rate limit.
 - An optional RAGAS-backed judge for teams that want RAGAS-comparable numbers.
 - Publish to PyPI.

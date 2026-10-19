@@ -142,3 +142,12 @@ def test_malformed_replies_are_not_cached(tmp_path: Path) -> None:
     with pytest.raises(JudgeError):
         judge(llm, tmp_path)[0].answer_relevancy("q", "a")
     assert judge(llm, tmp_path)[0].answer_relevancy("q", "a").value == 1.0
+
+
+def test_bare_lists_are_accepted_for_claims_and_verdicts() -> None:
+    llm = FakeLLM(
+        claims=['["The stationary noise limit for EMUs is 65 dB", "EMUs are blue"]'],
+        verdicts=['[{"claim": 1, "supported": true}, {"claim": 2, "supported": false}]'],
+    )
+    s = judge(llm)[0].faithfulness("q", "x", CONTEXTS)
+    assert s is not None and s.value == 0.5

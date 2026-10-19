@@ -1,0 +1,806 @@
+{
+  "goldpass_version": "0.1.0",
+  "meta": {
+    "system": "replay:answers.json",
+    "generator": {
+      "model": "gemini-3.5-flash-lite",
+      "family": "google"
+    },
+    "timestamp": "2026-10-19T11:46:48Z",
+    "n_controls": 15,
+    "n_perturbed": 28,
+    "definition": "a miss is a planted error whose perturbed answer scores at least the control's faithfulness"
+  },
+  "controls": {
+    "q01": "For electric multiple units (EMUs), the limit value for the A-weighted equivalent continuous sound pressure level of the unit (LpAeq,T[unit]) is 65 dB [1].",
+    "q02": "The limit value for pass-by noise for wagons (normalised to APL = 0,225) at 80 km/h is 83 dB [1].",
+    "q03": "The width of the escape walkway must be at least 0.8 m [1], and the minimum vertical clearance above the walkway must be 2.25 m [1].",
+    "q04": "An alternative electricity supply for the emergency lighting must be available for an appropriate period of time after failure of the main supply, which must be consistent with the evacuation scenarios and reported in the Emergency Plan [1].",
+    "q05": "For Category A passenger rolling stock, the maximum distance from the portals to an evacuation and rescue point and between evacuation and rescue points is 5 km, while for Category B passenger rolling stock it is 20 km [1]. Category A passenger rolling stock is for operation on lines where the distance between evacuation and rescue points or the length of tunnels does not exceed 5 km, whereas Category B passenger rolling stock is for operation in all tunnels irrespective of their length [2].",
+    "q06": "For a unit length of more than 205 to 300 metres, there must be 3 wheelchair spaces [1].",
+    "q07": "All exterior passenger doorways shall have a minimum clear useable width of 800 mm when open [1]. On trains with a design speed lower than 250 km/h, wheelchair access doors offering a level access shall have a minimum clear useable width of 1 000 mm when open [1].",
+    "q08": "New lines with a speed greater than 250 km/h must be supplied with one of the AC systems listed in point 4.2.3 (a) and (b) [1].",
+    "q09": "The Class A train protection system is ETCS (European Train Control System), and the Class A radio system is RMR (Railway Mobile Radio system) [1]. RMR comprises two radio class A systems, which are GSM-R and FRMCS (Future Railway Mobile Communication System) [1].",
+    "q10": "The rear end signal of a passenger train shall consist of 2 steady red lights at the same height above buffer on the transversal axis [1]. The rear end signal of a freight train shall consist of 2 reflective plates at the same height above buffer on the transversal axis, though any train equipped with 2 steady red lights is also considered to comply with this obligation [2].",
+    "q11": "Freight trains with reflective plates as the rear-end signal must be accepted in Portugal from 1 January 2025, and across the whole European Union rail network from 1 January 2026 [1].",
+    "q12": "The Agency shall issue the vehicle authorisation for placing on the market, or inform the applicant of its negative decision, within a predetermined, reasonable time, and in any case within four months of receipt of all relevant information [1][2].",
+    "q14": "Doors giving access from the escape walkway to the safe area shall have a minimum clear opening of 1,4 m wide and 2,0 m high [1].",
+    "q15": "A new vehicle authorisation for placing on the market is required for renewed or upgraded vehicles if: (a) changes are made to the values of the parameters referred to in point (b) of paragraph 10 which are outside the range of acceptable parameters as defined in the TSIs; (b) the overall safety level of the vehicle concerned may be adversely affected by the works envisaged; or (c) it is required by the relevant TSIs [1].",
+    "q16": "The language used for safety-related communication between train crew and the staff authorising train movements is the operating language(s) used by the infrastructure manager on the route concerned [1]."
+  },
+  "perturbations": [
+    {
+      "id": "q01",
+      "kind": "number",
+      "original": "65",
+      "planted": "66",
+      "position": 145,
+      "answer": "For electric multiple units (EMUs), the limit value for the A-weighted equivalent continuous sound pressure level of the unit (LpAeq,T[unit]) is 66 dB [1]."
+    },
+    {
+      "id": "q01",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Compliance must be re-checked by an independent auditor every year. [1]",
+      "position": 156,
+      "answer": "For electric multiple units (EMUs), the limit value for the A-weighted equivalent continuous sound pressure level of the unit (LpAeq,T[unit]) is 65 dB [1]. Compliance must be re-checked by an independent auditor every year. [1]"
+    },
+    {
+      "id": "q02",
+      "kind": "number",
+      "original": "0,225",
+      "planted": "0,226",
+      "position": 66,
+      "answer": "The limit value for pass-by noise for wagons (normalised to APL = 0,226) at 80 km/h is 83 dB [1]."
+    },
+    {
+      "id": "q02",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Exceptions can be granted on written request. [1]",
+      "position": 98,
+      "answer": "The limit value for pass-by noise for wagons (normalised to APL = 0,225) at 80 km/h is 83 dB [1]. Exceptions can be granted on written request. [1]"
+    },
+    {
+      "id": "q03",
+      "kind": "number",
+      "original": "0.8",
+      "planted": "0.9",
+      "position": 49,
+      "answer": "The width of the escape walkway must be at least 0.9 m [1], and the minimum vertical clearance above the walkway must be 2.25 m [1]."
+    },
+    {
+      "id": "q03",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Organisations with fewer than 50 employees are exempt. [1]",
+      "position": 133,
+      "answer": "The width of the escape walkway must be at least 0.8 m [1], and the minimum vertical clearance above the walkway must be 2.25 m [1]. Organisations with fewer than 50 employees are exempt. [1]"
+    },
+    {
+      "id": "q04",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Exceptions can be granted on written request. [1]",
+      "position": 242,
+      "answer": "An alternative electricity supply for the emergency lighting must be available for an appropriate period of time after failure of the main supply, which must be consistent with the evacuation scenarios and reported in the Emergency Plan [1]. Exceptions can be granted on written request. [1]"
+    },
+    {
+      "id": "q05",
+      "kind": "number",
+      "original": "5",
+      "planted": "6",
+      "position": 156,
+      "answer": "For Category A passenger rolling stock, the maximum distance from the portals to an evacuation and rescue point and between evacuation and rescue points is 6 km, while for Category B passenger rolling stock it is 20 km [1]. Category A passenger rolling stock is for operation on lines where the distance between evacuation and rescue points or the length of tunnels does not exceed 5 km, whereas Category B passenger rolling stock is for operation in all tunnels irrespective of their length [2]."
+    },
+    {
+      "id": "q05",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Organisations with fewer than 50 employees are exempt. [1]",
+      "position": 497,
+      "answer": "For Category A passenger rolling stock, the maximum distance from the portals to an evacuation and rescue point and between evacuation and rescue points is 5 km, while for Category B passenger rolling stock it is 20 km [1]. Category A passenger rolling stock is for operation on lines where the distance between evacuation and rescue points or the length of tunnels does not exceed 5 km, whereas Category B passenger rolling stock is for operation in all tunnels irrespective of their length [2]. Organisations with fewer than 50 employees are exempt. [1]"
+    },
+    {
+      "id": "q06",
+      "kind": "number",
+      "original": "3",
+      "planted": "6",
+      "position": 64,
+      "answer": "For a unit length of more than 205 to 300 metres, there must be 6 wheelchair spaces [1]."
+    },
+    {
+      "id": "q06",
+      "kind": "sentence",
+      "original": "",
+      "planted": "It started as a voluntary pilot and only later became mandatory. [1]",
+      "position": 89,
+      "answer": "For a unit length of more than 205 to 300 metres, there must be 3 wheelchair spaces [1]. It started as a voluntary pilot and only later became mandatory. [1]"
+    },
+    {
+      "id": "q07",
+      "kind": "number",
+      "original": "800",
+      "planted": "900",
+      "position": 76,
+      "answer": "All exterior passenger doorways shall have a minimum clear useable width of 900 mm when open [1]. On trains with a design speed lower than 250 km/h, wheelchair access doors offering a level access shall have a minimum clear useable width of 1 000 mm when open [1]."
+    },
+    {
+      "id": "q07",
+      "kind": "sentence",
+      "original": "",
+      "planted": "It started as a voluntary pilot and only later became mandatory. [1]",
+      "position": 265,
+      "answer": "All exterior passenger doorways shall have a minimum clear useable width of 800 mm when open [1]. On trains with a design speed lower than 250 km/h, wheelchair access doors offering a level access shall have a minimum clear useable width of 1 000 mm when open [1]. It started as a voluntary pilot and only later became mandatory. [1]"
+    },
+    {
+      "id": "q08",
+      "kind": "number",
+      "original": "one",
+      "planted": "two",
+      "position": 67,
+      "answer": "New lines with a speed greater than 250 km/h must be supplied with two of the AC systems listed in point 4.2.3 (a) and (b) [1]."
+    },
+    {
+      "id": "q08",
+      "kind": "sentence",
+      "original": "",
+      "planted": "This was last revised in 2017 and replaced the earlier version. [1]",
+      "position": 128,
+      "answer": "New lines with a speed greater than 250 km/h must be supplied with one of the AC systems listed in point 4.2.3 (a) and (b) [1]. This was last revised in 2017 and replaced the earlier version. [1]"
+    },
+    {
+      "id": "q09",
+      "kind": "number",
+      "original": "two",
+      "planted": "six",
+      "position": 162,
+      "answer": "The Class A train protection system is ETCS (European Train Control System), and the Class A radio system is RMR (Railway Mobile Radio system) [1]. RMR comprises six radio class A systems, which are GSM-R and FRMCS (Future Railway Mobile Communication System) [1]."
+    },
+    {
+      "id": "q09",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Compliance must be re-checked by an independent auditor every year. [1]",
+      "position": 265,
+      "answer": "The Class A train protection system is ETCS (European Train Control System), and the Class A radio system is RMR (Railway Mobile Radio system) [1]. RMR comprises two radio class A systems, which are GSM-R and FRMCS (Future Railway Mobile Communication System) [1]. Compliance must be re-checked by an independent auditor every year. [1]"
+    },
+    {
+      "id": "q10",
+      "kind": "number",
+      "original": "2",
+      "planted": "3",
+      "position": 58,
+      "answer": "The rear end signal of a passenger train shall consist of 3 steady red lights at the same height above buffer on the transversal axis [1]. The rear end signal of a freight train shall consist of 2 reflective plates at the same height above buffer on the transversal axis, though any train equipped with 2 steady red lights is also considered to comply with this obligation [2]."
+    },
+    {
+      "id": "q10",
+      "kind": "sentence",
+      "original": "",
+      "planted": "A reduced version applies at weekends and on public holidays. [1]",
+      "position": 378,
+      "answer": "The rear end signal of a passenger train shall consist of 2 steady red lights at the same height above buffer on the transversal axis [1]. The rear end signal of a freight train shall consist of 2 reflective plates at the same height above buffer on the transversal axis, though any train equipped with 2 steady red lights is also considered to comply with this obligation [2]. A reduced version applies at weekends and on public holidays. [1]"
+    },
+    {
+      "id": "q11",
+      "kind": "number",
+      "original": "1",
+      "planted": "3",
+      "position": 95,
+      "answer": "Freight trains with reflective plates as the rear-end signal must be accepted in Portugal from 3 January 2025, and across the whole European Union rail network from 1 January 2026 [1]."
+    },
+    {
+      "id": "q11",
+      "kind": "sentence",
+      "original": "",
+      "planted": "A reduced version applies at weekends and on public holidays. [1]",
+      "position": 185,
+      "answer": "Freight trains with reflective plates as the rear-end signal must be accepted in Portugal from 1 January 2025, and across the whole European Union rail network from 1 January 2026 [1]. A reduced version applies at weekends and on public holidays. [1]"
+    },
+    {
+      "id": "q12",
+      "kind": "number",
+      "original": "four",
+      "planted": "two",
+      "position": 190,
+      "answer": "The Agency shall issue the vehicle authorisation for placing on the market, or inform the applicant of its negative decision, within a predetermined, reasonable time, and in any case within two months of receipt of all relevant information [1][2]."
+    },
+    {
+      "id": "q12",
+      "kind": "sentence",
+      "original": "",
+      "planted": "It started as a voluntary pilot and only later became mandatory. [1]",
+      "position": 249,
+      "answer": "The Agency shall issue the vehicle authorisation for placing on the market, or inform the applicant of its negative decision, within a predetermined, reasonable time, and in any case within four months of receipt of all relevant information [1][2]. It started as a voluntary pilot and only later became mandatory. [1]"
+    },
+    {
+      "id": "q14",
+      "kind": "number",
+      "original": "1,4",
+      "planted": "1,6",
+      "position": 99,
+      "answer": "Doors giving access from the escape walkway to the safe area shall have a minimum clear opening of 1,6 m wide and 2,0 m high [1]."
+    },
+    {
+      "id": "q14",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Compliance must be re-checked by an independent auditor every year. [1]",
+      "position": 130,
+      "answer": "Doors giving access from the escape walkway to the safe area shall have a minimum clear opening of 1,4 m wide and 2,0 m high [1]. Compliance must be re-checked by an independent auditor every year. [1]"
+    },
+    {
+      "id": "q15",
+      "kind": "number",
+      "original": "10",
+      "planted": "20",
+      "position": 194,
+      "answer": "A new vehicle authorisation for placing on the market is required for renewed or upgraded vehicles if: (a) changes are made to the values of the parameters referred to in point (b) of paragraph 20 which are outside the range of acceptable parameters as defined in the TSIs; (b) the overall safety level of the vehicle concerned may be adversely affected by the works envisaged; or (c) it is required by the relevant TSIs [1]."
+    },
+    {
+      "id": "q15",
+      "kind": "sentence",
+      "original": "",
+      "planted": "It started as a voluntary pilot and only later became mandatory. [1]",
+      "position": 426,
+      "answer": "A new vehicle authorisation for placing on the market is required for renewed or upgraded vehicles if: (a) changes are made to the values of the parameters referred to in point (b) of paragraph 10 which are outside the range of acceptable parameters as defined in the TSIs; (b) the overall safety level of the vehicle concerned may be adversely affected by the works envisaged; or (c) it is required by the relevant TSIs [1]. It started as a voluntary pilot and only later became mandatory. [1]"
+    },
+    {
+      "id": "q16",
+      "kind": "sentence",
+      "original": "",
+      "planted": "Compliance must be re-checked by an independent auditor every year. [1]",
+      "position": 204,
+      "answer": "The language used for safety-related communication between train crew and the staff authorising train movements is the operating language(s) used by the infrastructure manager on the route concerned [1]. Compliance must be re-checked by an independent auditor every year. [1]"
+    }
+  ],
+  "summary": {
+    "per_judge": {
+      "groq:openai/gpt-oss-120b": {
+        "family": "openai",
+        "same_family_as_generator": false,
+        "controls": 15,
+        "control_mean": 1.0,
+        "controls_below_1": 0,
+        "by_kind": {
+          "number": {
+            "n": 13,
+            "missed": 0,
+            "miss_rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2281
+            ],
+            "mean_drop": 0.5961
+          },
+          "sentence": {
+            "n": 15,
+            "missed": 0,
+            "miss_rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2039
+            ],
+            "mean_drop": 0.3967
+          },
+          "all": {
+            "n": 28,
+            "missed": 0,
+            "miss_rate": 0.0,
+            "ci95": [
+              0.0,
+              0.1206
+            ],
+            "mean_drop": 0.4893
+          }
+        },
+        "failures": [],
+        "rows": [
+          {
+            "id": "q01",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q01",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q02",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q02",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q03",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q03",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q04",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q05",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q05",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.8,
+            "drop": 0.2,
+            "missed": false
+          },
+          {
+            "id": "q06",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q06",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q07",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q07",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q08",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q08",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.3333333333333333,
+            "drop": 0.6667,
+            "missed": false
+          },
+          {
+            "id": "q09",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q09",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q10",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q10",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q11",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q11",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q12",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q12",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q14",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q14",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q15",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q15",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q16",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          }
+        ]
+      },
+      "gemini:gemini-3.5-flash-lite": {
+        "family": "google",
+        "same_family_as_generator": true,
+        "controls": 15,
+        "control_mean": 1.0,
+        "controls_below_1": 0,
+        "by_kind": {
+          "number": {
+            "n": 13,
+            "missed": 0,
+            "miss_rate": 0.0,
+            "ci95": [
+              0.0,
+              0.2281
+            ],
+            "mean_drop": 0.5207
+          },
+          "sentence": {
+            "n": 15,
+            "missed": 1,
+            "miss_rate": 0.0667,
+            "ci95": [
+              0.0119,
+              0.2982
+            ],
+            "mean_drop": 0.3467
+          },
+          "all": {
+            "n": 28,
+            "missed": 1,
+            "miss_rate": 0.0357,
+            "ci95": [
+              0.0063,
+              0.1771
+            ],
+            "mean_drop": 0.4275
+          }
+        },
+        "failures": [],
+        "rows": [
+          {
+            "id": "q01",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q01",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q02",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q02",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q03",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q03",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q04",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q05",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.7142857142857143,
+            "drop": 0.2857,
+            "missed": false
+          },
+          {
+            "id": "q05",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.8333333333333334,
+            "drop": 0.1667,
+            "missed": false
+          },
+          {
+            "id": "q06",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q06",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.3333333333333333,
+            "drop": 0.6667,
+            "missed": false
+          },
+          {
+            "id": "q07",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q07",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 1.0,
+            "drop": 0.0,
+            "missed": true
+          },
+          {
+            "id": "q08",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.0,
+            "drop": 1.0,
+            "missed": false
+          },
+          {
+            "id": "q08",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.3333333333333333,
+            "drop": 0.6667,
+            "missed": false
+          },
+          {
+            "id": "q09",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q09",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.8,
+            "drop": 0.2,
+            "missed": false
+          },
+          {
+            "id": "q10",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.6,
+            "drop": 0.4,
+            "missed": false
+          },
+          {
+            "id": "q10",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.8333333333333334,
+            "drop": 0.1667,
+            "missed": false
+          },
+          {
+            "id": "q11",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q11",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q12",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q12",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q14",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          },
+          {
+            "id": "q14",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q15",
+            "kind": "number",
+            "control": 1.0,
+            "perturbed": 0.6666666666666666,
+            "drop": 0.3333,
+            "missed": false
+          },
+          {
+            "id": "q15",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.75,
+            "drop": 0.25,
+            "missed": false
+          },
+          {
+            "id": "q16",
+            "kind": "sentence",
+            "control": 1.0,
+            "perturbed": 0.5,
+            "drop": 0.5,
+            "missed": false
+          }
+        ]
+      }
+    },
+    "comparisons": [
+      {
+        "judges": [
+          "groq:openai/gpt-oss-120b",
+          "gemini:gemini-3.5-flash-lite"
+        ],
+        "pairs": 28,
+        "only_first_missed": 0,
+        "only_second_missed": 1,
+        "both_missed": 0,
+        "mcnemar_p": 1.0
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from goldpass.stats import flip_margin, sign_test, wilson
+from goldpass.stats import flip_margin, mcnemar_exact, sign_test, wilson
 
 
 @pytest.mark.parametrize(
@@ -77,3 +77,11 @@ def test_flip_margin(
 def test_flip_margin_without_items() -> None:
     assert flip_margin(0.5, 0, 0.9, None) is None
     assert flip_margin(None, 10, 0.9, None) is None
+
+
+@pytest.mark.parametrize(
+    ("b", "c", "p"),
+    [(0, 0, 1.0), (3, 3, 1.0), (5, 0, 0.0625), (6, 0, 0.03125), (1, 7, 0.0703125), (0, 1, 1.0)],
+)
+def test_mcnemar_exact_two_sided(b: int, c: int, p: float) -> None:
+    assert mcnemar_exact(b, c) == pytest.approx(p)

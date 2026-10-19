@@ -74,3 +74,22 @@ def test_rail_recorded_example_passes_against_its_baseline(tmp_path: Path) -> No
 @pytest.mark.parametrize("golden", ["fake_rag/golden.jsonl", "rail/golden.jsonl"])
 def test_example_golden_sets_are_valid(golden: str) -> None:
     assert main(["validate", "--strict", str(EXAMPLES / golden)]) == ExitCode.OK
+
+
+def test_rail_judge_audit_reproduces_offline_without_keys(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The published audit numbers come from the committed answers and judge cache."""
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    audit = EXAMPLES / "rail" / "audit"
+    out = tmp_path / "audit.json"
+    argv = ["judge-audit", "--config", str(audit / "goldpass.yaml"), "--offline", "--out", str(out)]
+    assert main(argv) == ExitCode.OK
+    now = json.loads(out.read_text(encoding="utf-8"))["summary"]
+    published = json.loads((audit / "judge-audit.json").read_text(encoding="utf-8"))["summary"]
+    assert now == published
+    judges = now["per_judge"]
+    assert judges["groq:openai/gpt-oss-120b"]["by_kind"]["all"]["missed"] == 0
+    assert judges["gemini:gemini-3.5-flash-lite"]["by_kind"]["all"]["missed"] == 1
+    assert now["comparisons"][0]["mcnemar_p"] == 1.0

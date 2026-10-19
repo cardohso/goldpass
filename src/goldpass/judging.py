@@ -36,15 +36,20 @@ class JudgeRun:
     failed: int = 0
 
 
-def make_judges(judging: Judging, use_cache: bool = True, log: Log | None = None) -> list[LLMJudge]:
-    """Build every judge up front, so a missing API key fails before the system is called."""
+def make_judges(
+    judging: Judging, use_cache: bool = True, log: Log | None = None, offline: bool = False
+) -> list[LLMJudge]:
+    """Build every judge up front, so a missing API key fails before the system is called.
+    Offline judges answer only from the cache and need no key."""
+    if offline and (not use_cache or judging.cache_dir is None):
+        raise ConfigError("--offline needs the judge cache (judging.cache_dir, no --no-cache)")
     cache: Cache = NoCache()
     if use_cache and judging.cache_dir is not None:
         cache = DiskCache(judging.cache_dir / "judge.sqlite")
     judges = []
     for spec in judging.judges:
         key = None
-        if spec.api_key_env:
+        if spec.api_key_env and not offline:
             key = os.environ.get(spec.api_key_env)
             if not key:
                 raise ConfigError(
@@ -59,6 +64,7 @@ def make_judges(judging: Judging, use_cache: bool = True, log: Log | None = None
                 strip_pattern=judging.strip_pattern,
                 transport=TRANSPORT,
                 log=log,
+                offline=offline,
             )
         )
     return judges

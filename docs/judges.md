@@ -65,3 +65,45 @@ how you see the bias.
 - A reply that is not valid JSON is retried and never cached.
 - Judging is a second stage over saved answers, so you can re-judge a recorded run with
   `--replay` without calling your system again.
+
+## Auditing a judge: `goldpass judge-audit`
+
+High faithfulness on correct answers says little about a judge: a judge that approves everything
+scores 1.0 there too. `judge-audit` gives judges something to forgive. For each answered question
+whose contexts have text, it scores the answer as it is (the control), then copies with exactly
+one planted unsupported claim:
+
+- **number**: one number the contexts support is changed to the nearest value that appears
+  nowhere in them. Range endpoints are skipped, and upper bounds move down ("within 30 days" →
+  "within 20 days"), so the new claim is never implied by the old one.
+- **sentence**: one unsupported sentence is appended with a citation marker. The defaults are
+  domain-neutral ("Exceptions can be granted on written request."); a template is skipped when
+  its marker word appears in the contexts. Add your own under `audit.sentences`.
+
+A judge **misses** a planted error when the perturbed copy scores at least the control's
+faithfulness: the false claim cost it nothing. The report gives each judge's miss rate with a
+95% Wilson interval, the mean paired drop, how many controls it already scored below 1.00 (a
+judge strict about everything catches more for the wrong reason), and, for each pair of judges,
+an exact McNemar test on the planted errors they disagree about. Each judge's family is shown
+next to the generator's. The same-family guard does not apply here: measuring same-family
+leniency is the point.
+
+```bash
+goldpass judge-audit --config goldpass.yaml --dry-run   # list the planted errors, no calls
+goldpass judge-audit --config goldpass.yaml             # up to 2 calls per answer per judge
+```
+
+```yaml
+audit:
+  sentences:                          # optional; replaces the defaults
+    - {marker: refund, sentence: "Refunds are processed automatically within a week."}
+```
+
+It needs answers with context texts: a live system, or a recorded `*.answers.json` replayed.
+Everything is deterministic except the judges, and every judge reply is cached. `--offline`
+(on `run` and `judge-audit`) answers only from the cache and needs no keys, so a committed cache
+makes a judged result reproducible by anyone; `examples/rail/audit/` is one.
+
+Limits: the planted errors are simple and mechanical, so a judge that catches them all may still
+miss subtler unsupported claims; "missed" is measured on the score, not on the judge's verdict
+for the planted claim itself; and a few dozen planted errors give wide intervals.
