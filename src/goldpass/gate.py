@@ -12,6 +12,11 @@ thresholds.yaml:
     baseline:
       max_drop: 0.05            # any metric may fall at most this much below the baseline
       metrics: {grounding: 0}   # per-metric override
+      alpha: 0.05               # optional: a drop must also be significant to fail
+
+Every check carries a 95% interval and a flip margin (how few questions would change the
+decision); every baseline delta carries the questions that got worse and better and an exact
+sign-test p-value (see goldpass.stats).
 
 Gating works on results dicts (the JSON `goldpass run` writes), so `goldpass compare` can
 re-gate saved runs without calling anything.
@@ -30,6 +35,7 @@ import yaml
 from goldpass.config import ConfigError
 from goldpass.judging import JUDGE_METRICS
 from goldpass.metrics import METRICS
+from goldpass.stats import flip_margin, sign_test, wilson
 
 WORST = 5  # questions listed per failing check
 
@@ -65,6 +71,7 @@ class Thresholds:
     tags: Mapping[str, Mapping[str, Rule]] = field(default_factory=dict)
     max_drop: float = 0.05
     max_drop_by_metric: Mapping[str, float] = field(default_factory=dict)
+    alpha: float | None = None  # if set, a drop past max_drop fails only when p <= alpha
 
     def allowed_drop(self, metric: str) -> float:
         return self.max_drop_by_metric.get(metric, self.max_drop)
@@ -118,8 +125,13 @@ def parse_thresholds(data: Any, where: str = "thresholds") -> Thresholds:
     if not isinstance(tags, dict):
         raise ConfigError(f"{where}.tags: expected a mapping of tag -> metrics")
     base = data.get("baseline") or {}
-    if not isinstance(base, dict) or set(base) - {"max_drop", "metrics"}:
-        raise ConfigError(f"{where}.baseline: expected keys max_drop and/or metrics")
+    if not isinstance(base, dict) or set(base) - {"max_drop", "metrics", "alpha"}:
+        raise ConfigError(f"{where}.baseline: expected keys max_drop, metrics and/or alpha")
+    alpha = None
+    if base.get("alpha") is not None:
+        alpha = _number(base["alpha"], f"{where}.baseline.alpha")
+        if not 0 < alpha < 1:
+            raise ConfigError(f"{where}.baseline.alpha: expected a number between 0 and 1")
     overrides = base.get("metrics") or {}
     if not isinstance(overrides, dict):
         raise ConfigError(f"{where}.baseline.metrics: expected a mapping of metric -> max drop")
@@ -133,6 +145,7 @@ def parse_thresholds(data: Any, where: str = "thresholds") -> Thresholds:
             )
             for k, v in overrides.items()
         },
+        alpha=alpha,
     )
 
 
@@ -159,6 +172,8 @@ class Check:
     ok: bool
     message: str
     worst: tuple[tuple[str, float], ...] = ()  # (item id, value), worst first
+    ci: tuple[float, float] | None = None  # 95% Wilson interval for the value
+    margin: int | None = None  # fewest questions whose change would flip `ok`
 
 
 def _item_values(
@@ -206,7 +221,15 @@ def _check(result: Mapping[str, Any], agg: Mapping[str, Any], metric: str, rule:
     ok = not problems
     message = "ok" if ok else "; ".join(problems)
     worst = () if ok else _worst(result, metric, tag)
-    return Check(metric, scope, value, n, rule, ok, message, worst)
+    is_count = metric == "errors"
+    ci = None if is_count or value is None else wilson(value, n)
+    scored = len(result["items"]) if is_count else n
+    margin = (
+        None
+        if rule.min_n is not None and n < rule.min_n
+        else (flip_margin(value, scored, rule.min, rule.max, is_count=is_count))
+    )
+    return Check(metric, scope, value, n, rule, ok, message, worst, ci, margin)
 
 
 def check_thresholds(result: Mapping[str, Any], th: Thresholds) -> list[Check]:
@@ -231,6 +254,10 @@ class Delta:
     allowed_drop: float
     ok: bool
     regressed: tuple[tuple[str, float, float], ...] = ()  # (item id, before, after)
+    worse: int = 0  # questions present in both runs whose score got worse
+    better: int = 0
+    p_value: float = 1.0  # exact one-sided sign test: P(this many worse | no real change)
+    within_noise: bool = False  # dropped past the limit, but not significantly (alpha)
 
     @property
     def change(self) -> float:
@@ -246,6 +273,7 @@ class Delta:
 class Comparison:
     deltas: tuple[Delta, ...]
     warnings: tuple[str, ...]
+    alpha: float | None = None
 
     @property
     def ok(self) -> bool:
@@ -257,7 +285,8 @@ def _gating_judge(result: Mapping[str, Any]) -> str | None:
     return next((j["name"] for j in judges if j.get("gating")), None)
 
 
-def _before(item: Mapping[str, Any], metric: str) -> float | None:
+def _item_score(item: Mapping[str, Any], metric: str) -> float | None:
+    """One question's score; errors count as 1 (errored) or 0."""
     if metric == "errors":
         return 1.0 if item.get("error") else 0.0
     raw = item.get("metrics", {}).get(metric)
@@ -297,17 +326,46 @@ def compare_baseline(
         then = baseline["metrics"].get(metric, {}).get("value")
         if now is None or then is None:
             continue
+        pairs = []  # (item id, before, after) for questions scored in both runs
+        for it in result["items"]:
+            prev = before.get(it["id"])
+            b = None if prev is None else _item_score(prev, metric)
+            a = _item_score(it, metric)
+            if a is not None and b is not None:
+                pairs.append((it["id"], b, a))
+        sign = 1 if info.higher_is_better else -1
+        worse = [x for x in pairs if sign * (x[2] - x[1]) < -1e-9]
+        better = sum(sign * (x[2] - x[1]) > 1e-9 for x in pairs)
+        p_value = sign_test(len(worse), better)
         allowed = th.allowed_drop(metric)
         drop = (then - now) if info.higher_is_better else (now - then)
-        ok = drop <= allowed + 1e-9
-        regressed: list[tuple[str, float, float]] = []
-        if not ok:
-            for it_id, after in _item_values(result, metric, None):
-                b = _before(before.get(it_id, {}), metric)
-                if b is not None and (after < b if info.higher_is_better else after > b):
-                    regressed.append((it_id, b, after))
-        deltas.append(Delta(metric, then, now, allowed, ok, tuple(regressed[:WORST])))
-    return Comparison(tuple(deltas), tuple(warnings))
+        past_limit = drop > allowed + 1e-9
+        # errors are failures of the system, not sampling noise: alpha never excuses them
+        alpha = None if metric == "errors" else th.alpha
+        within_noise = past_limit and alpha is not None and p_value > alpha
+        regressed = tuple(worse[:WORST]) if past_limit else ()
+        deltas.append(
+            Delta(
+                metric,
+                then,
+                now,
+                allowed,
+                not past_limit or within_noise,
+                regressed,
+                len(worse),
+                better,
+                p_value,
+                within_noise,
+            )  # fmt: skip
+        )
+    return Comparison(tuple(deltas), tuple(warnings), th.alpha)
+
+
+def is_fragile(c: Check) -> bool:
+    """Passes, but one more failing question would fail it. Zero-tolerance rules (min 1, max 0)
+    always are, by design, so they are not flagged."""
+    zero_tolerance = c.rule.min == 1.0 or (c.rule.max == 0 and c.rule.min is None)
+    return c.ok and c.margin == 1 and not zero_tolerance
 
 
 def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict[str, Any]:
@@ -319,9 +377,11 @@ def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict
             for d in comparison.deltas
             if not d.ok
         ]
+    fragile = [f"{c.metric} ({c.scope})" for c in checks if is_fragile(c)]
     return {
         "passed": not failures,
         "failures": failures,
+        "fragile": fragile,  # passing checks that one more failing question would fail
         "checks": [
             {
                 "metric": c.metric,
@@ -332,12 +392,16 @@ def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict
                 "ok": c.ok,
                 "message": c.message,
                 "worst": [list(w) for w in c.worst],
+                "ci": None if c.ci is None else [round(c.ci[0], 4), round(c.ci[1], 4)],
+                "margin": c.margin,
+                "fragile": is_fragile(c),
             }
             for c in checks
         ],  # fmt: skip
         "baseline": None
         if comparison is None
         else {
+            "alpha": comparison.alpha,
             "warnings": list(comparison.warnings),
             "deltas": [
                 {
@@ -349,6 +413,10 @@ def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict
                     "allowed_drop": d.allowed_drop,
                     "ok": d.ok,
                     "regressed": [list(r) for r in d.regressed],
+                    "worse": d.worse,
+                    "better": d.better,
+                    "p_value": round(d.p_value, 4),
+                    "within_noise": d.within_noise,
                 }
                 for d in comparison.deltas
             ],  # fmt: skip

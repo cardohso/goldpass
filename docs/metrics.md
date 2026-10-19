@@ -60,3 +60,37 @@ Each skip is recorded with its reason, counted in the report and in `skipped` in
 - `contexts have no text: faithfulness skipped` and `answer makes no factual claims: faithfulness skipped`
 
 Use `min_n` in the thresholds so a gate cannot pass because almost nothing was measured.
+
+## Small samples
+
+A golden set of 20 questions is small. One question moves a rate by 1/n: 0.05 at n = 20, and
+0.25 when there are only 4 `refuse` questions. goldpass puts that next to every number instead
+of hiding it:
+
+- **95% interval.** Every rate in the report has a Wilson score interval. It is exact (in the
+  binomial sense) for yes/no metrics such as grounding and refusal rate. For means of 0–1 scores
+  (recall, faithfulness, …) it is conservative, because their variance is at most p(1 − p)/n.
+  A perfect 20/20 still only shows the true rate is above about 0.84.
+- **Flip margin.** Each threshold check reports how few questions would have to change for it to
+  flip: "1 question from passing" on a failure, and a **Fragile** warning on a pass that a single
+  question could fail. Rules with no tolerance by design (`min: 1`, `errors: {max: 0}`) are not
+  flagged. For scores that are not yes/no, the margin is a lower bound.
+- **Questions changed.** Against a baseline, each metric shows how many of the questions scored
+  in both runs got worse and how many got better, with an exact one-sided sign test (McNemar's
+  exact test for yes/no metrics): the chance of at least that many getting worse if nothing
+  really changed. One question worse and none better gives p = 0.50, a coin flip.
+
+By default, a drop larger than `max_drop` fails the gate whatever its p-value, so a single
+regressed question can fail it. That is the safe default for a gate. To fail only when a drop is
+also unlikely to be noise, set `baseline.alpha`:
+
+```yaml
+baseline:
+  max_drop: 0.05
+  alpha: 0.05   # a drop past max_drop fails only if p <= 0.05
+```
+
+Whatever the size of the set, that needs at least 5 questions worse and none better (p = 1/32;
+4 and none is p = 1/16). That is the
+trade-off: `alpha` stops noisy failures and also stops single-question regressions from
+failing the build. New errors are never excused by `alpha`; gate them with `errors: {max: 0}`.

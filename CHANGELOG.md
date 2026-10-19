@@ -6,6 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Small-sample statistics (`goldpass.stats`, standard library only):
+  - a 95% Wilson interval for every rate in the report (exact for yes/no metrics, conservative
+    for means of 0–1 scores);
+  - a flip margin on every threshold check ("1 question from passing"), and a **Fragile**
+    warning for passing checks that a single question could fail (zero-tolerance rules are
+    not flagged);
+  - against a baseline: questions worse and better, with an exact one-sided sign test.
+- `baseline.alpha` in the thresholds file: a drop past `max_drop` fails only if it is also
+  significant. Off by default. New errors are never excused.
+- When a failing drop has p > 0.05, the report says it could be noise and points to `alpha`.
+
+### Fixed
+
+- "1 items were not scored" in the report.
+
 ## [0.1.0] - 2026-10-19
 
 First release. Alpha: the interface may still change before 1.0.

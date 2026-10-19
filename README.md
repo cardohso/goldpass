@@ -92,27 +92,33 @@ filter that hid an outdated page and removes its refusal threshold:
 
 > ## goldpass: FAILED ❌
 >
-> | Metric | Value | n | Threshold | Status |
-> |---|---|---|---|---|
-> | Recall@k | 1.00 | 9 | ≥ 0.9 | ✅ |
-> | Context precision | 0.94 | 9 | ≥ 0.9 | ✅ |
-> | Grounding | 0.89 | 9 | ≥ 0.9 | ❌ |
-> | Answered rate | 1.00 | 9 | ≥ 0.9 | ✅ |
-> | Refusal rate | 0.00 | 2 | ≥ 1 | ❌ |
+> | Metric | Value | 95% CI | n | Threshold | Status |
+> |---|---|---|---|---|---|
+> | Recall@k | 1.00 | 0.70–1.00 | 9 | ≥ 0.9 | ✅ |
+> | Context precision | 0.94 | 0.63–0.99 | 9 | ≥ 0.9 | ✅ |
+> | Grounding | 0.89 | 0.57–0.98 | 9 | ≥ 0.9 | ❌ |
+> | Answered rate | 1.00 | 0.70–1.00 | 9 | ≥ 0.9 | ✅ |
+> | Refusal rate | 0.00 | 0.00–0.66 | 2 | ≥ 1 | ❌ |
+>
+> > ⚠️ **Fragile:** passes, but a single question could fail it: Recall@k, Context precision, Answered rate.
 >
 > ### What failed
 >
-> - **Grounding**: 0.889 < 0.9 (needs ≥ 0.9)
+> - **Grounding**: 0.889 < 0.9 (needs ≥ 0.9; 1 question from passing)
 >   - failing questions: `g08`
-> - **Refusal rate**: 0.000 < 1 (needs ≥ 1)
+> - **Refusal rate**: 0.000 < 1 (needs ≥ 1; 2 questions from passing)
 >   - failing questions: `r01`, `r02`
-> - **Grounding [tag:wrong-document]**: 0.000 < 1 (needs ≥ 1)
+> - **Grounding [tag:wrong-document]**: 0.000 < 1 (needs ≥ 1; 1 question from passing)
 >   - failing questions: `g08`
 
 Retrieval still looks perfect: recall@k is 1.00. The regression only shows up as the system
 citing the wrong document and answering questions it should refuse. Those two checks exist for
-exactly this case. With `baseline:` set, the report adds baseline and Δ columns and lists the
-questions that got worse since the baseline run.
+exactly this case. With `baseline:` set, the report adds baseline and Δ columns, counts the
+questions that got worse and better, and lists the ones that got worse.
+
+Note the intervals: with 9 questions, a perfect 1.00 only shows the true rate is above 0.70, and
+three passing checks are one question away from failing. See
+[docs/metrics.md](docs/metrics.md#small-samples).
 
 ## Parity with the system it came from
 
@@ -152,6 +158,10 @@ retrieval metrics skipped on the 16 `answer` questions.
   train door widths in one regulation and tunnel door widths in another). An answer drawn from
   the wrong passage can still score well on retrieval and look faithful to its contexts. A
   document-level citation check catches it, and `wrong-document` tags make it a gated slice.
+- **Honest about small samples.** A golden set of 20 questions moves 0.05 per question.
+  Every rate gets a 95% Wilson interval, every check says how few questions would flip it, and
+  baseline drops come with an exact sign test. `baseline.alpha` can require a drop to be
+  significant before it fails, at the cost of letting single-question regressions through.
 - **Two stages.** Answers are collected once and saved (`*.answers.json`), then scored. Judging,
   re-judging with another model, and baseline comparison work from saved answers without calling
   the system again.

@@ -70,7 +70,7 @@ def test_parse_thresholds() -> None:
         ({"metrics": {"grounding": {"min": "high"}}}, "expected a number, got str"),
         ({"metrics": {"grounding": {"min": 1, "min_n": 0}}}, "positive integer"),
         ({"gates": {}}, "expected keys metrics, tags and/or baseline"),
-        ({"baseline": {"max_drop": 0.1, "per_metric": {}}}, "max_drop and/or metrics"),
+        ({"baseline": {"max_drop": 0.1, "per_metric": {}}}, "max_drop, metrics and/or alpha"),
     ],
 )
 def test_thresholds_errors(data: Any, message: str) -> None:
@@ -167,7 +167,11 @@ def test_report_for_a_failed_gate(rail: dict[str, Any]) -> None:
     now["gate"] = gate_section(check_thresholds(now, th), compare_baseline(now, rail, th))
     md = render(now)
     assert md.startswith("## goldpass: FAILED ❌")
-    assert "| Grounding | 0.87 | 15 | ≥ 0.9 | 1.00 | -0.13 | ❌ |" in md
+    row = "| Grounding | 0.87 | 0.62–0.96 | 15 | ≥ 0.9 | 1.00 | -0.13 |"
+    assert row + " 1 worse, 0 better (p 0.50) | ❌ |" in md
+    assert "(needs ≥ 0.9; 1 question from passing)" in md
+    assert "p = 0.50: a change this size could be noise" in md
+    assert "- **Errors**: 0 → 1 since the baseline" in md
     assert "### What failed" in md
     assert "questions that got worse: `q01` (1.00 → 0.00)" in md
     assert "`q02`: HTTP 500" in md
@@ -241,3 +245,68 @@ def test_compare_command(tmp_path: Path, rail: dict[str, Any]) -> None:
     assert out["gate"]["failures"][0].startswith("grounding: dropped 0.133")
     (tmp_path / "junk.json").write_text("[]", encoding="utf-8")
     assert main(["compare", str(tmp_path / "junk.json"), str(tmp_path / "base.json")]) == 2
+
+
+# small samples: intervals, flip margins, paired significance
+
+
+def test_checks_carry_interval_and_flip_margin(rail: dict[str, Any]) -> None:
+    th = Thresholds(metrics={"answered_rate": Rule(min=0.8), "errors": Rule(max=0)})
+    answered, errors = check_thresholds(rail, th)
+    assert answered.ci is not None
+    assert answered.ci[0] == pytest.approx(0.7167, abs=1e-4)  # 15/16 answered
+    assert answered.ci[1] == pytest.approx(0.9889, abs=1e-4)
+    assert answered.margin == 3  # 15/16 -> 12/16 = 0.75 is the first value below 0.8
+    assert errors.ci is None and errors.margin == 1  # one error would fail max 0
+
+
+def test_one_question_from_failing_is_flagged_fragile(rail: dict[str, Any]) -> None:
+    th = Thresholds(metrics={"answered_rate": Rule(min=0.9), "grounding": Rule(min=0.5)})
+    checks = check_thresholds(rail, th)
+    assert [c.margin for c in checks] == [1, 8]
+    gate = gate_section(checks, None)
+    assert gate["passed"] and gate["fragile"] == ["answered_rate (all)"]
+    assert gate["checks"][0]["ci"] == [0.7167, 0.9889]
+
+
+def test_baseline_deltas_count_questions_and_p_value(rail: dict[str, Any]) -> None:
+    bad = {d.metric: d for d in compare_baseline(regressed(rail), rail).deltas}
+    assert (bad["grounding"].worse, bad["grounding"].better) == (1, 0)
+    assert bad["grounding"].p_value == 0.5  # one question got worse: indistinguishable from noise
+    assert bad["recall_at_k"].worse == 0 and bad["recall_at_k"].p_value == 1.0
+
+
+def test_alpha_excuses_a_one_question_drop(rail: dict[str, Any]) -> None:
+    comparison = compare_baseline(regressed(rail), rail, Thresholds(alpha=0.05))
+    by_metric = {d.metric: d for d in comparison.deltas}
+    assert by_metric["grounding"].ok and by_metric["grounding"].within_noise
+    # a new error is a failure of the system, not sampling noise: alpha does not excuse it
+    assert not by_metric["errors"].ok and not by_metric["errors"].within_noise
+    section = gate_section([], comparison)
+    assert section["failures"] == ["errors: dropped 1.000 from the baseline (allowed 0.05)"]
+    assert section["baseline"]["alpha"] == 0.05
+
+
+def test_alpha_still_fails_a_consistent_drop(rail: dict[str, Any]) -> None:
+    now = copy.deepcopy(rail)
+    answered = [it for it in now["items"] if it["metrics"].get("grounding") is True]
+    for it in answered[:5]:
+        it["metrics"]["grounding"] = False  # 5 questions worse, none better: p = 1/32
+    now["metrics"]["grounding"] = {"value": round(10 / 15, 4), "n": 15}
+    (delta,) = [d for d in compare_baseline(now, rail, Thresholds(alpha=0.05)).deltas
+                if d.metric == "grounding"]  # fmt: skip
+    assert delta.p_value == pytest.approx(1 / 32)
+    assert not delta.ok and not delta.within_noise and len(delta.regressed) == 5
+
+
+@pytest.mark.parametrize("alpha", [0, 1, 1.5, "0.05"])
+def test_alpha_must_be_a_probability(alpha: Any) -> None:
+    with pytest.raises(ConfigError, match="alpha"):
+        parse_thresholds({"baseline": {"alpha": alpha}})
+
+
+def test_zero_tolerance_rules_are_not_called_fragile(rail: dict[str, Any]) -> None:
+    th = Thresholds(metrics={"errors": Rule(max=0), "refusal_rate": Rule(min=1.0)})
+    checks = check_thresholds(rail, th)
+    assert [c.margin for c in checks] == [1, 1]  # one question flips either
+    assert gate_section(checks, None)["fragile"] == []  # but that is the rule's intent

@@ -88,7 +88,12 @@ tags:
 baseline:
   max_drop: 0.05                         # largest allowed drop for any metric
   metrics: {grounding: 0}                # per-metric override
+  alpha: 0.05                            # optional: also require a significant drop
 ```
+
+Reports show a 95% interval for every rate, how few questions would flip each check, and, against
+a baseline, how many questions got worse or better with a sign-test p-value. See
+[metrics.md](metrics.md#small-samples).
 
 Metric names are listed in [metrics.md](metrics.md). Names from RAGAS or similar tools get a
 suggestion (`context_recall` → `recall_at_k`).
