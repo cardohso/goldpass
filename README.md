@@ -16,6 +16,10 @@ the CI job when retrieval, grounding or refusals get worse, naming the questions
   to gate on a judge from the generator's own model family.
 - **One composite GitHub Action** that writes the report to the job summary.
 
+<p align="center">
+  <img src="docs/images/how-it-works.svg" alt="Flow: a golden set is sent to your RAG system; its answers are scored by deterministic metrics and an optional LLM judge with a same-family guard; a gate compares the scores with thresholds and a baseline and produces a report and an exit code." width="860">
+</p>
+
 It is the generic half of the evaluation gate in
 [rail-regulation-rag](https://github.com/cardohso/rail-regulation-rag), and it reproduces that
 gate's numbers exactly (see [below](#parity-with-the-system-it-came-from)).
@@ -90,26 +94,11 @@ This is the job summary from the last command in the quickstart (abridged; writt
 `examples/fake_rag/goldpass-results/run.md`). The fake service's `regressed` mode drops a
 filter that hid an outdated page and removes its refusal threshold:
 
-> ## goldpass: FAILED ❌
->
-> | Metric | Value | 95% CI | n | Threshold | Status |
-> |---|---|---|---|---|---|
-> | Recall@k | 1.00 | 0.70–1.00 | 9 | ≥ 0.9 | ✅ |
-> | Context precision | 0.94 | 0.63–0.99 | 9 | ≥ 0.9 | ✅ |
-> | Grounding | 0.89 | 0.57–0.98 | 9 | ≥ 0.9 | ❌ |
-> | Answered rate | 1.00 | 0.70–1.00 | 9 | ≥ 0.9 | ✅ |
-> | Refusal rate | 0.00 | 0.00–0.66 | 2 | ≥ 1 | ❌ |
->
-> > ⚠️ **Fragile:** passes, but a single question could fail it: Recall@k, Context precision, Answered rate.
->
-> ### What failed
->
-> - **Grounding**: 0.889 < 0.9 (needs ≥ 0.9; 1 question from passing)
->   - failing questions: `g08`
-> - **Refusal rate**: 0.000 < 1 (needs ≥ 1; 2 questions from passing)
->   - failing questions: `r01`, `r02`
-> - **Grounding [tag:wrong-document]**: 0.000 < 1 (needs ≥ 1; 1 question from passing)
->   - failing questions: `g08`
+<img src="docs/images/failed-report.png" alt="goldpass job summary titled FAILED. A table of metrics with 95% confidence intervals, n and thresholds: Recall@k 1.00, Context precision 0.94 and Answered rate 1.00 pass; Grounding 0.89 fails against 0.9 and Refusal rate 0.00 fails against 1. A warning says three passing checks could be failed by a single question. A What failed list names g08 for grounding and r01 and r02 for refusals." width="760">
+
+*The Markdown goldpass wrote (`run.md`), rendered with GitHub's Markdown API and screenshotted
+locally; it is not a capture of the live job-summary page. `docs/images/README.md` says how to
+redo it.*
 
 Retrieval still looks perfect: recall@k is 1.00. The regression only shows up as the system
 citing the wrong document and answering questions it should refuse. Those two checks exist for

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 250" role="img" aria-labelledby="t d">
+  <title id="t">How goldpass works</title>
+  <desc id="d">A golden set is sent to your RAG system. Its answers become records, which are scored by deterministic metrics and optional LLM judges. A gate compares the scores with thresholds and a baseline, and produces a report and an exit code.</desc>
+  <style>
+    .box { fill: #f6f8fa; stroke: #8b949e; stroke-width: 1.5; }
+    .hot { fill: #ddf4ff; stroke: #0969da; stroke-width: 1.5; }
+    .opt { fill: none; stroke: #8b949e; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arrow { stroke: #59636e; stroke-width: 1.8; fill: none; }
+    .head { fill: #59636e; }
+    text { font: 14px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #1f2328; }
+    .title { font-weight: 600; } .sub { font-size: 12px; fill: #59636e; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #161b22; stroke: #6e7681; } .hot { fill: #0d2744; stroke: #4493f8; }
+      .opt { stroke: #6e7681; } .arrow { stroke: #9198a1; } .head { fill: #9198a1; }
+      text { fill: #e6edf3; } .sub { fill: #9198a1; }
+    }
+  </style>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="head" d="M0 0L10 5L0 10z"/></marker></defs>
+
+  <rect class="box" x="10" y="70" width="150" height="90" rx="8"/>
+  <text class="title" x="85" y="102" text-anchor="middle">Golden set</text>
+  <text class="sub" x="85" y="124" text-anchor="middle">question, expected,</text>
+  <text class="sub" x="85" y="140" text-anchor="middle">gold passages, docs</text>
+
+  <rect class="box" x="195" y="70" width="150" height="90" rx="8"/>
+  <text class="title" x="270" y="102" text-anchor="middle">Your RAG system</text>
+  <text class="sub" x="270" y="124" text-anchor="middle">HTTP, Python,</text>
+  <text class="sub" x="270" y="140" text-anchor="middle">or a recorded run</text>
+
+  <rect class="hot" x="380" y="30" width="215" height="95" rx="8"/>
+  <text class="title" x="487" y="60" text-anchor="middle">Deterministic metrics</text>
+  <text class="sub" x="487" y="82" text-anchor="middle">retrieval, grounding,</text>
+  <text class="sub" x="487" y="98" text-anchor="middle">answer and refusal rates</text>
+  <text class="sub" x="487" y="114" text-anchor="middle">no LLM, no keys</text>
+
+  <rect class="opt" x="380" y="140" width="215" height="75" rx="8"/>
+  <text class="title" x="487" y="168" text-anchor="middle">LLM judge (optional)</text>
+  <text class="sub" x="487" y="188" text-anchor="middle">faithfulness, relevancy;</text>
+  <text class="sub" x="487" y="204" text-anchor="middle">same-family guard</text>
+
+  <rect class="box" x="630" y="70" width="130" height="90" rx="8"/>
+  <text class="title" x="695" y="102" text-anchor="middle">Gate</text>
+  <text class="sub" x="695" y="124" text-anchor="middle">thresholds,</text>
+  <text class="sub" x="695" y="140" text-anchor="middle">baseline, noise</text>
+
+  <rect class="hot" x="790" y="70" width="100" height="90" rx="8"/>
+  <text class="title" x="840" y="102" text-anchor="middle">Report</text>
+  <text class="sub" x="840" y="124" text-anchor="middle">+ exit code</text>
+  <text class="sub" x="840" y="140" text-anchor="middle">0 / 1 / 2 / 3</text>
+
+  <path class="arrow" marker-end="url(#a)" d="M160 115H193"/>
+  <path class="arrow" marker-end="url(#a)" d="M345 115H378" />
+  <path class="arrow" marker-end="url(#a)" d="M595 85L628 100"/>
+  <path class="arrow" marker-end="url(#a)" d="M595 180L628 135" stroke-dasharray="5 4"/>
+  <path class="arrow" marker-end="url(#a)" d="M760 115H788"/>
+</svg>
