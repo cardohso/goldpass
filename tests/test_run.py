@@ -126,3 +126,10 @@ def test_setup_errors(
 ) -> None:
     assert main(argv) == code
     assert message in capsys.readouterr().err
+
+
+def test_a_judge_free_run_leaves_no_cache_file_behind(
+    project: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["run", "--golden", "golden.jsonl", "--python", "fake_rag_run:ask"]) == 0
+    assert not (project / ".goldpass").exists()

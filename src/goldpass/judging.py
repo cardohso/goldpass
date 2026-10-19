@@ -48,6 +48,8 @@ def make_judges(
     if offline and (not use_cache or judging.cache_dir is None):
         raise ConfigError("--offline needs the judge cache (judging.cache_dir, no --no-cache)")
     cache: Cache = NoCache()
+    if not judging.judges:
+        return []  # a judge-free run must not leave a cache file behind
     if use_cache and judging.cache_dir is not None:
         cache = DiskCache(judging.cache_dir / "judge.sqlite")
     judges = []

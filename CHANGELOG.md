@@ -46,6 +46,8 @@ All notable changes to this project are documented here. The format follows
   the log and saved to the results, answers and report files. Saved and printed system names
   now show the URL without credentials, query or fragment. Found while writing SECURITY.md.
 - "1 items were not scored" in the report.
+- A judge-free run no longer creates an empty `.goldpass/cache/judge.sqlite`. Found when it was
+  committed by accident while adding goldpass to rail-regulation-rag.
 - Judges that return a bare JSON list for claims or verdicts are accepted.
 - Planted number errors skip numbers after lower-bound conditions ("greater than 250 km/h"),
   where a changed value can still be implied by the passage. Found by the first real audit.
