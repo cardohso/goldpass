@@ -1,6 +1,6 @@
 [project]
 name = "goldpass"
-version = "0.1.0"
+version = "0.2.0"
 description = "Regression tests for RAG systems: a golden set, deterministic retrieval and grounding metrics, and a CI gate."
 readme = "README.md"
 license = "MIT"

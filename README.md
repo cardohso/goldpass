@@ -24,7 +24,7 @@ It is the generic half of the evaluation gate in
 [rail-regulation-rag](https://github.com/cardohso/rail-regulation-rag), and it reproduces that
 gate's numbers exactly (see [below](#parity-with-the-system-it-came-from)).
 
-> **Status: 0.1.0, alpha.** Not on PyPI yet. Read [Limitations](#limitations) before
+> **Status: 0.2.0, alpha.** Not on PyPI yet. Read [Limitations](#limitations) before
 > relying on it.
 
 ## Quickstart
@@ -214,7 +214,7 @@ What is synthetic, untested or simplified, stated plainly:
   the Action on a recorded run on all three. The Action's live-service path is tested on Ubuntu
   only.
 - **Alpha.** The interface may change before 1.0. Not on PyPI, so install from a clone or
-  `uv tool install git+https://github.com/cardohso/goldpass@v0.1.0`.
+  `uv tool install git+https://github.com/cardohso/goldpass@v0.2.0`.
 
 ## Next steps
 

@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
+Adds small-sample statistics, `judge-audit`, opt-in concurrency, an offline judge mode and a
+refusals-not-reported mode; CI on Windows and macOS. Still alpha. Nothing from 0.1.0 had to change
+for existing configs.
+
 ### Added
 
 - Small-sample statistics (`goldpass.stats`, standard library only):
@@ -138,5 +144,6 @@ First release. Alpha: the interface may still change before 1.0.
   codes, Action), `docs/metrics.md` (definitions and skip rules), `docs/judges.md` (judge
   metrics, same-family guard, free-tier behaviour).
 
-[Unreleased]: https://github.com/cardohso/goldpass/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/cardohso/goldpass/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/cardohso/goldpass/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cardohso/goldpass/releases/tag/v0.1.0
