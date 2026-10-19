@@ -146,10 +146,16 @@ def score_item(item: GoldenItem, record: Record | None, k: int | None = None) ->
     s.refused = record.refused
 
     if item.expected == "refuse":
-        s.metrics["refusal_rate"] = record.refused
+        if record.refused is None:
+            s.notes.append("refusals not reported: refusal_rate skipped")
+        else:
+            s.metrics["refusal_rate"] = record.refused
         return s
 
-    s.metrics["answered_rate"] = not record.refused
+    if record.refused is None:
+        s.notes.append("refusals not reported: answered_rate skipped")
+    else:
+        s.metrics["answered_rate"] = not record.refused
     gold = set(item.gold_passage_ids)
     if not gold:
         s.notes.append("no gold_passage_ids: retrieval metrics skipped")

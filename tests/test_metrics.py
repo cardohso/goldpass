@@ -234,3 +234,25 @@ def test_by_tag_and_by_document() -> None:
     rows = {r.doc_id: r for r in by_document(scores)}
     assert rows["docA"].questions == 1 and rows["docA"].cited_other_docs == ("docC",)
     assert rows["docB"].grounding == Aggregate(1.0, 1)
+
+
+def test_unreported_refusals_skip_answered_and_refusal_rates_with_a_note() -> None:
+    answered = score_item(answer_item(), Record("q1", "x", refused=None, contexts=CTX))
+    assert "answered_rate" not in answered.metrics
+    assert "refusals not reported: answered_rate skipped" in answered.notes
+    assert answered.refused is None and "recall_at_k" in answered.metrics  # retrieval still scored
+
+    refuse = score_item(refuse_item(), Record("r1", "x", refused=None))
+    assert refuse.metrics == {} and "refusals not reported: refusal_rate skipped" in refuse.notes
+
+
+def test_unreported_refusals_still_get_grounding() -> None:
+    rec = Record("q1", "x", refused=None, contexts=CTX, citations=(Citation("p1", "docA"),))
+    assert score_item(answer_item(), rec).metrics["grounding"] is True
+
+
+def test_aggregate_has_no_value_for_unreported_refusals() -> None:
+    items = [answer_item(id="a"), refuse_item(id="r")]
+    recs = [Record("a", "x", refused=None, contexts=CTX), Record("r", "x", refused=None)]
+    agg = aggregate([score_item(i, r) for i, r in zip(items, recs, strict=True)])
+    assert agg["answered_rate"] == Aggregate(None, 0) and agg["refusal_rate"] == Aggregate(None, 0)

@@ -33,7 +33,8 @@ def _interval(value: Any, n: int) -> str:
 def _changed(d: Mapping[str, Any]) -> str:
     if not d["worse"] and not d["better"]:
         return "—"
-    return f"{d['worse']} worse, {d['better']} better (p {d['p_value']:.2f})"
+    counts = f"{d['worse']} worse, {d['better']} better"
+    return counts if d["p_value"] is None else f"{counts} (p {d['p_value']:.2f})"
 
 
 def _signed(v: float) -> str:
@@ -159,7 +160,8 @@ def _failures(result: Mapping[str, Any], gate: Mapping[str, Any] | None) -> list
         if d["regressed"]:
             shown = ", ".join(f"`{i}` ({_fmt(b)} → {_fmt(a)})" for i, b, a in d["regressed"])
             out.append(f"  - questions that got worse: {shown}")
-        if base.get("alpha") is None and d["p_value"] > 0.05 and d["metric"] != "errors":
+        noisy = d["p_value"] is not None and d["p_value"] > 0.05
+        if base.get("alpha") is None and noisy and d["metric"] != "errors":
             out.append(
                 f"  - p = {d['p_value']:.2f}: a change this size could be noise. Set "
                 "`baseline.alpha` to fail only on significant drops."

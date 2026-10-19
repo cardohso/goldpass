@@ -41,6 +41,12 @@ resolved, grounding is skipped for that question, with a note, rather than guess
 
 A system without a refusal flag can be read with `refusal_patterns` (regexes on the answer).
 
+A system that cannot say whether it refused (a retrieval-only check, for instance) declares it
+with `fields: {refused: null}` and no patterns. Its refusals are then **not reported**: both rates
+are skipped with a note, instead of showing a made-up "answered rate 1.00". A response that merely
+lacks the `refused` field, with the default `refused: refused` configured, still counts as not
+refused.
+
 ## LLM judge (optional)
 
 `faithfulness` and `answer_relevancy` are averaged over answered `answer` questions, with the
@@ -54,6 +60,7 @@ Each skip is recorded with its reason, counted in the report and in `skipped` in
 - `no gold_passage_ids: retrieval metrics skipped`
 - `contexts not reported: retrieval metrics skipped`. The system's response had no contexts
   field. This is different from an empty list, which scores 0.
+- `refusals not reported: answered_rate skipped` and `refusals not reported: refusal_rate skipped`
 - `no source_doc_ids: grounding skipped`
 - `citations not reported: grounding skipped`
 - `citation '…' has no doc_id and is not in the contexts: grounding skipped`

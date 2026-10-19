@@ -168,7 +168,9 @@ accepted it. Numbers after lower-bound conditions are now never changed.
   measurable without an LLM, so the default gate is free, fast and reproducible, and a failure
   is a fact rather than a judge's opinion.
 - **"Not reported" is not "zero".** `contexts: null` skips retrieval metrics; `contexts: []`
-  scores 0. Skips are counted and explained, and `min_n` stops a gate passing on almost nothing.
+  scores 0. The same goes for refusals: a retrieval-only system declares `refused: null` and gets no
+  answered rate, instead of a made-up 1.00. Skips are counted and explained, and `min_n` stops a
+  gate passing on almost nothing.
 - **Grounding by document, not by text overlap.** In a corpus of similar documents, a plausible
   answer often exists in the wrong one (the rail golden set has three such traps, for example
   train door widths in one regulation and tunnel door widths in another). An answer drawn from

@@ -50,9 +50,11 @@ inputs:
     required: false
     default: "3.12"
   cache-judge:
-    description: '"true" to persist the judge cache between runs with actions/cache.'
+    description: >-
+      Persist the judge cache between runs with actions/cache: "auto" (default) does it only when
+      the config lists judges, "true" always, "false" never.
     required: false
-    default: "true"
+    default: "auto"
   cache-dir:
     description: Judge cache directory, relative to working-directory (match judging.cache_dir).
     required: false
@@ -83,7 +85,26 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - if: inputs.cache-judge == 'true'
+    - id: judges
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GP_CACHE: ${{ inputs.cache-judge }}
+        GP_CONFIG: ${{ inputs.config }}
+      run: |
+        enabled=false
+        case "$GP_CACHE" in
+          true) enabled=true ;;
+          auto)
+            # a top-level `judges:` key that is not an empty list
+            pattern='^judges:[[:space:]]*(#.*)?$|^judges:[[:space:]]*\[[[:space:]]*[^][:space:]]'
+            if [ -n "$GP_CONFIG" ] && [ -f "$GP_CONFIG" ] && grep -Eq "$pattern" "$GP_CONFIG"; then
+              enabled=true
+            fi ;;
+        esac
+        echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
+
+    - if: steps.judges.outputs.enabled == 'true'
       uses: actions/cache@v6
       with:
         path: ${{ inputs.working-directory }}/${{ inputs.cache-dir }}

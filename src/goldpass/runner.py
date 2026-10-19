@@ -42,7 +42,9 @@ def collect(
         nonlocal done
         r = adapter.ask(item)
         if log:
-            status = f"error: {r.error}" if r.error else ("refused" if r.refused else "answered")
+            status = "ok" if r.refused is None else "refused" if r.refused else "answered"
+            if r.error:
+                status = f"error: {r.error}"
             took = f" in {r.latency_s:.2f}s" if r.latency_s is not None else ""
             with lock:
                 done += 1

@@ -13,6 +13,7 @@ thresholds.yaml:
       max_drop: 0.05            # any metric may fall at most this much below the baseline
       metrics: {grounding: 0}   # per-metric override
       alpha: 0.05               # optional: a drop must also be significant to fail
+      deterministic: true       # optional: reruns give identical answers, so any drop is real
 
 Every check carries a 95% interval and a flip margin (how few questions would change the
 decision); every baseline delta carries the questions that got worse and better and an exact
@@ -72,6 +73,7 @@ class Thresholds:
     max_drop: float = 0.05
     max_drop_by_metric: Mapping[str, float] = field(default_factory=dict)
     alpha: float | None = None  # if set, a drop past max_drop fails only when p <= alpha
+    deterministic: bool = False  # the system gives the same answers on every run: no noise
 
     def allowed_drop(self, metric: str) -> float:
         return self.max_drop_by_metric.get(metric, self.max_drop)
@@ -125,13 +127,23 @@ def parse_thresholds(data: Any, where: str = "thresholds") -> Thresholds:
     if not isinstance(tags, dict):
         raise ConfigError(f"{where}.tags: expected a mapping of tag -> metrics")
     base = data.get("baseline") or {}
-    if not isinstance(base, dict) or set(base) - {"max_drop", "metrics", "alpha"}:
-        raise ConfigError(f"{where}.baseline: expected keys max_drop, metrics and/or alpha")
+    if not isinstance(base, dict) or set(base) - {"max_drop", "metrics", "alpha", "deterministic"}:
+        raise ConfigError(
+            f"{where}.baseline: expected keys max_drop, metrics, alpha and/or deterministic"
+        )
+    deterministic = base.get("deterministic", False)
+    if not isinstance(deterministic, bool):
+        raise ConfigError(f"{where}.baseline.deterministic: expected true or false")
     alpha = None
     if base.get("alpha") is not None:
         alpha = _number(base["alpha"], f"{where}.baseline.alpha")
         if not 0 < alpha < 1:
             raise ConfigError(f"{where}.baseline.alpha: expected a number between 0 and 1")
+        if deterministic:
+            raise ConfigError(
+                f"{where}.baseline: alpha cannot be combined with deterministic "
+                "(there is no sampling noise to test against)"
+            )
     overrides = base.get("metrics") or {}
     if not isinstance(overrides, dict):
         raise ConfigError(f"{where}.baseline.metrics: expected a mapping of metric -> max drop")
@@ -146,6 +158,7 @@ def parse_thresholds(data: Any, where: str = "thresholds") -> Thresholds:
             for k, v in overrides.items()
         },
         alpha=alpha,
+        deterministic=deterministic,
     )
 
 
@@ -256,7 +269,7 @@ class Delta:
     regressed: tuple[tuple[str, float, float], ...] = ()  # (item id, before, after)
     worse: int = 0  # questions present in both runs whose score got worse
     better: int = 0
-    p_value: float = 1.0  # exact one-sided sign test: P(this many worse | no real change)
+    p_value: float | None = 1.0  # exact one-sided sign test; None for a deterministic system
     within_noise: bool = False  # dropped past the limit, but not significantly (alpha)
 
     @property
@@ -274,6 +287,7 @@ class Comparison:
     deltas: tuple[Delta, ...]
     warnings: tuple[str, ...]
     alpha: float | None = None
+    deterministic: bool = False
 
     @property
     def ok(self) -> bool:
@@ -336,13 +350,13 @@ def compare_baseline(
         sign = 1 if info.higher_is_better else -1
         worse = [x for x in pairs if sign * (x[2] - x[1]) < -1e-9]
         better = sum(sign * (x[2] - x[1]) > 1e-9 for x in pairs)
-        p_value = sign_test(len(worse), better)
+        p_value = None if th.deterministic else sign_test(len(worse), better)
         allowed = th.allowed_drop(metric)
         drop = (then - now) if info.higher_is_better else (now - then)
         past_limit = drop > allowed + 1e-9
         # errors are failures of the system, not sampling noise: alpha never excuses them
         alpha = None if metric == "errors" else th.alpha
-        within_noise = past_limit and alpha is not None and p_value > alpha
+        within_noise = past_limit and alpha is not None and p_value is not None and p_value > alpha
         regressed = tuple(worse[:WORST]) if past_limit else ()
         deltas.append(
             Delta(
@@ -358,7 +372,7 @@ def compare_baseline(
                 within_noise,
             )  # fmt: skip
         )
-    return Comparison(tuple(deltas), tuple(warnings), th.alpha)
+    return Comparison(tuple(deltas), tuple(warnings), th.alpha, th.deterministic)
 
 
 def is_fragile(c: Check) -> bool:
@@ -402,6 +416,7 @@ def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict
         if comparison is None
         else {
             "alpha": comparison.alpha,
+            "deterministic": comparison.deterministic,
             "warnings": list(comparison.warnings),
             "deltas": [
                 {
@@ -415,7 +430,7 @@ def gate_section(checks: Sequence[Check], comparison: Comparison | None) -> dict
                     "regressed": [list(r) for r in d.regressed],
                     "worse": d.worse,
                     "better": d.better,
-                    "p_value": round(d.p_value, 4),
+                    "p_value": None if d.p_value is None else round(d.p_value, 4),
                     "within_noise": d.within_noise,
                 }
                 for d in comparison.deltas

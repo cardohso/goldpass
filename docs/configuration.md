@@ -47,7 +47,7 @@ system:                              # one of: http, python, replay
   retry: {attempts: 5, backoff_s: 1, max_wait_s: 120}
   fields:                            # dotted paths into the response; defaults shown
     answer: answer
-    refused: refused
+    refused: refused                 # `null` (and no patterns): the system does not report refusals
     refusal_patterns: []             # regexes on the answer, for systems without a flag
     contexts: contexts               # ranked passages the generator saw
     retrieved: retrieved             # optional wider list, before reranking/filtering
@@ -114,7 +114,13 @@ baseline:
   max_drop: 0.05                         # largest allowed drop for any metric
   metrics: {grounding: 0}                # per-metric override
   alpha: 0.05                            # optional: also require a significant drop
+  deterministic: false                   # optional: reruns give identical answers (see below)
 ```
+
+`deterministic: true` is for a system whose answers do not vary between runs (for example a
+retrieval-only check over fixed queries). There is no sampling noise to test against, so the
+report shows the number of questions that got worse and better without a p-value, and no "could
+be noise" advice. It cannot be combined with `alpha`.
 
 Reports show a 95% interval for every rate, how few questions would flip each check, and, against
 a baseline, how many questions got worse or better with a sign-test p-value. See
@@ -156,6 +162,6 @@ goldpass compare RESULTS BASELINE [--thresholds F] [--summary F] [--out F]
 
 Inputs: `config`, `golden`, `url`, `replay`, `thresholds`, `baseline`, `out`, `k`, `generator`,
 `no-judge`, `allow-same-family`, `working-directory`, `python-version` (3.12), `cache-judge`
-(true), `cache-dir` (`.goldpass/cache`), `summary` (true). Outputs: `passed`, `exit-code`,
+(`auto`: only when the config lists judges; `true`, `false`), `cache-dir` (`.goldpass/cache`), `summary` (true). Outputs: `passed`, `exit-code`,
 `results`, `markdown`. The report goes to the job summary. See `.github/workflows/e2e.yml` for a
 working example, including how to assert that a regressed system fails.

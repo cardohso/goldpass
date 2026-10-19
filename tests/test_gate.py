@@ -70,7 +70,10 @@ def test_parse_thresholds() -> None:
         ({"metrics": {"grounding": {"min": "high"}}}, "expected a number, got str"),
         ({"metrics": {"grounding": {"min": 1, "min_n": 0}}}, "positive integer"),
         ({"gates": {}}, "expected keys metrics, tags and/or baseline"),
-        ({"baseline": {"max_drop": 0.1, "per_metric": {}}}, "max_drop, metrics and/or alpha"),
+        (
+            {"baseline": {"max_drop": 0.1, "per_metric": {}}},
+            "max_drop, metrics, alpha and/or deterministic",
+        ),
     ],
 )
 def test_thresholds_errors(data: Any, message: str) -> None:
@@ -310,3 +313,39 @@ def test_zero_tolerance_rules_are_not_called_fragile(rail: dict[str, Any]) -> No
     checks = check_thresholds(rail, th)
     assert [c.margin for c in checks] == [1, 1]  # one question flips either
     assert gate_section(checks, None)["fragile"] == []  # but that is the rule's intent
+
+
+# deterministic systems: no sampling noise, so no p-values and no "could be noise" advice
+
+
+def test_deterministic_baseline_reports_counts_without_p_values(rail: dict[str, Any]) -> None:
+    th = Thresholds(deterministic=True)
+    deltas = {d.metric: d for d in compare_baseline(regressed(rail), rail, th).deltas}
+    g = deltas["grounding"]
+    assert (g.worse, g.better, g.p_value, g.within_noise) == (1, 0, None, False)
+    assert not g.ok  # a drop is a drop: any change is real when reruns are identical
+
+
+def test_deterministic_report_has_no_noise_advice(rail: dict[str, Any]) -> None:
+    th = Thresholds(metrics={"grounding": Rule(min=0.9)}, deterministic=True)
+    now = regressed(rail)
+    now["gate"] = gate_section(check_thresholds(now, th), compare_baseline(now, rail, th))
+    assert now["gate"]["baseline"]["deterministic"] is True
+    md = render(now)
+    assert "1 worse, 0 better |" in md and "p 0." not in md and "(p " not in md
+    assert "could be noise" not in md and "baseline.alpha" not in md
+
+
+def test_default_report_still_gives_the_noise_advice(rail: dict[str, Any]) -> None:
+    now = regressed(rail)
+    now["gate"] = gate_section([], compare_baseline(now, rail))
+    assert "could be noise" in render(now)
+
+
+def test_deterministic_option_is_parsed_and_excludes_alpha() -> None:
+    assert parse_thresholds({"baseline": {"deterministic": True}}).deterministic is True
+    assert parse_thresholds({}).deterministic is False
+    with pytest.raises(ConfigError, match="alpha cannot be combined with deterministic"):
+        parse_thresholds({"baseline": {"deterministic": True, "alpha": 0.05}})
+    with pytest.raises(ConfigError, match="deterministic: expected true or false"):
+        parse_thresholds({"baseline": {"deterministic": "yes"}})

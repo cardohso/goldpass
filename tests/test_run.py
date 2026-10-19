@@ -133,3 +133,34 @@ def test_a_judge_free_run_leaves_no_cache_file_behind(
 ) -> None:
     assert main(["run", "--golden", "golden.jsonl", "--python", "fake_rag_run:ask"]) == 0
     assert not (project / ".goldpass").exists()
+
+
+def test_retrieval_only_system_does_not_get_an_answered_rate(
+    project: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A system with `refused: null` is scored on retrieval only: no made-up 'answered 1.00'."""
+    (project / "records.json").write_text(
+        json.dumps(
+            {
+                "records": [{"id": "a1", "contexts": [{"id": "p1", "doc_id": "d1"}]}, {"id": "r1"}]
+            }  # fmt: skip
+        ),
+        encoding="utf-8",
+    )
+    (project / "goldpass.yaml").write_text(
+        "golden: golden.jsonl\nsystem:\n  type: replay\n  path: records.json\n"
+        "  fields: {refused: null}\n",
+        encoding="utf-8",
+    )
+    assert main(["run"]) == ExitCode.OK
+    result = json.loads((project / "goldpass-results/run.json").read_text(encoding="utf-8"))
+    assert result["metrics"]["recall_at_k"] == {"value": 1.0, "n": 1}
+    assert result["metrics"]["answered_rate"] == {"value": None, "n": 0}
+    assert result["metrics"]["refusal_rate"] == {"value": None, "n": 0}
+    assert result["skipped"]["refusals not reported: answered_rate skipped"] == 1
+    out = capsys.readouterr().out
+    import re
+
+    assert re.search(r"Answered rate\s+—\s+0\b", out)  # shown as not measured, never 1.000
+    md = (project / "goldpass-results/run.md").read_text(encoding="utf-8")
+    assert "Answered rate" not in md  # not measured and not gated: left out of the report

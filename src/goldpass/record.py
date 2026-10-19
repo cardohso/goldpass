@@ -30,7 +30,7 @@ class Citation:
 class Record:
     id: str
     answer: str = ""
-    refused: bool = False
+    refused: bool | None = False  # None: the system does not report refusals (not "answered")
     contexts: tuple[Passage, ...] | None = None  # ranked passages the generator saw
     retrieved: tuple[Passage, ...] | None = None  # optional wider list, before rerank/filter
     citations: tuple[Citation, ...] | None = None

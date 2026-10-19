@@ -113,10 +113,14 @@ def _citation(c: Any, f: CitationFields) -> Citation:
 def to_record(obj: Any, item_id: str, fields: FieldMap, latency_s: float | None = None) -> Record:
     answer = get_path(obj, fields.answer)
     answer = "" if answer in (MISSING, None) else str(answer)
-    flag = _opt(obj, fields.refused)
-    refused = bool(flag) if flag is not MISSING else False
-    if not refused and fields.refusal_patterns:
-        refused = any(re.search(p, answer, re.IGNORECASE) for p in fields.refusal_patterns)
+    refused: bool | None
+    if fields.refused is None and not fields.refusal_patterns:
+        refused = None  # declared: this system cannot say whether it refused
+    else:
+        flag = _opt(obj, fields.refused)
+        refused = bool(flag) if flag is not MISSING else False
+        if not refused and fields.refusal_patterns:
+            refused = any(re.search(p, answer, re.IGNORECASE) for p in fields.refusal_patterns)
 
     contexts = _list(obj, fields.contexts)
     retrieved = _list(obj, fields.retrieved)

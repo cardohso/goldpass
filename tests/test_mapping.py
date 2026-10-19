@@ -85,3 +85,20 @@ def test_wrong_shapes_raise() -> None:
         to_record({"answer": "x", "contexts": "p1"}, "q", FieldMap())
     with pytest.raises(MappingError, match="passage has no 'id'"):
         to_record({"answer": "x", "contexts": [{"pid": "p1"}]}, "q", FieldMap())
+
+
+def test_a_system_that_declares_no_refusal_reporting_gives_none() -> None:
+    """`refused: null` and no patterns means the system cannot say whether it refused."""
+    fields = FieldMap(refused=None)
+    assert to_record({"answer": "x"}, "q", fields).refused is None
+    assert to_record({"answer": "x", "refused": True}, "q", fields).refused is None  # ignored
+
+
+def test_a_configured_flag_that_is_absent_still_means_not_refused() -> None:
+    assert to_record({"answer": "x"}, "q", FieldMap()).refused is False  # unchanged behaviour
+
+
+def test_patterns_still_decide_when_there_is_no_flag() -> None:
+    fields = FieldMap(refused=None, refusal_patterns=(r"cannot answer",))
+    assert to_record({"answer": "I cannot answer"}, "q", fields).refused is True
+    assert to_record({"answer": "65 dB"}, "q", fields).refused is False

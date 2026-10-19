@@ -40,6 +40,21 @@ All notable changes to this project are documented here. The format follows
   endings to LF.
 - CONTRIBUTING, SECURITY, issue and pull-request templates, Dependabot for Actions and Python.
 
+- `baseline.deterministic: true` in the thresholds file, for systems whose reruns give identical
+  answers: the report drops the p-value and the "could be noise, set `baseline.alpha`" advice,
+  which do not apply. It cannot be combined with `alpha`; `p_value` is `null` in the JSON.
+- Tests for the Action's judge-cache detection, run against the step's own shell script.
+
+### Changed
+
+- A system that declares `fields: {refused: null}` with no `refusal_patterns` now has its
+  refusals **not reported**: `answered_rate` and `refusal_rate` are skipped with a note, instead
+  of being scored as "never refused" (an "answered rate 1.00" for a system that generated
+  nothing). `Record.refused` may be `None`. Systems with a configured flag, and responses that
+  merely lack it, behave as before.
+- `cache-judge` on the Action defaults to `auto`: the judge cache is kept between runs only when
+  the config lists judges (`true` and `false` still force it).
+
 ### Fixed
 
 - Credentials and query strings in an HTTP system's URL (`?key=${API_KEY}`) were printed in
