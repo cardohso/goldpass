@@ -14,6 +14,7 @@ from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Protocol
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
@@ -47,6 +48,17 @@ def render(template: Any, item: GoldenItem) -> Any:
     return template
 
 
+def display_url(url: str) -> str:
+    """The URL without credentials, query string or fragment: safe to print and to save.
+    (`${KEY}` in a config URL is expanded before use, so a key in `?key=...` must not be shown.)"""
+    parts = urlsplit(url)
+    host = parts.hostname or ""
+    if ":" in host:  # IPv6 literal
+        host = f"[{host}]"
+    netloc = host + (f":{parts.port}" if parts.port else "")
+    return urlunsplit((parts.scheme, netloc, parts.path, "", ""))
+
+
 class HttpAdapter:
     def __init__(
         self,
@@ -57,7 +69,7 @@ class HttpAdapter:
         clock: Callable[[], float] = time.monotonic,
     ):
         self.system = system
-        self.name = f"http:{system.method} {system.url}"
+        self.name = f"http:{system.method} {display_url(system.url)}"
         self._client = httpx.Client(
             headers=dict(system.headers), timeout=system.timeout_s, transport=transport
         )

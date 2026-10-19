@@ -9,11 +9,19 @@ permissions:
 
 jobs:
   lint-and-test:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.11", "3.12"]
+        include:
+          # the code is pure Python, but paths, line endings and file locking differ
+          - os: windows-latest
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.12"
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.3.0
@@ -24,4 +32,10 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
-      - run: uv run pytest
+      - name: Tests with coverage
+        shell: bash
+        run: |
+          uv run pytest --cov --cov-report=term-missing --cov-report=markdown:coverage.md
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ] && [ "${{ matrix.python-version }}" = "3.12" ]; then
+            { echo "### Coverage"; echo; cat coverage.md; } >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -65,7 +65,12 @@ jobs:
           path: examples/fake_rag/goldpass-results/
 
   rail-recorded:
-    runs-on: ubuntu-latest
+    name: rail-recorded (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v7
 
@@ -79,6 +84,7 @@ jobs:
         env:
           PASSED: ${{ steps.rail.outputs.passed }}
           MARKDOWN: ${{ steps.rail.outputs.markdown }}
+        shell: bash
         run: |
           test "$PASSED" = true
           test -s "$MARKDOWN"

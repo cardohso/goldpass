@@ -1,0 +1,4 @@
+# One line ending everywhere, so `ruff format --check` and golden-set files behave the same on
+# Windows checkouts as on Linux and macOS.
+* text=auto eol=lf
+*.sqlite binary

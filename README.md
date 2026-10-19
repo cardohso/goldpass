@@ -214,8 +214,9 @@ What is synthetic, untested or simplified, stated plainly:
   latency but never beat an API's rate limit, so a golden set that needs more requests than the
   limit allows is still slow.
 - **JSON over HTTP only.** No streaming responses, no auth flows beyond static headers.
-- **Platforms.** CI runs on Ubuntu (Python 3.11 and 3.12), and local development was on macOS.
-  Windows is untested.
+- **Platforms.** CI runs the tests on Ubuntu (Python 3.11 and 3.12), Windows and macOS (3.12), and
+  the Action on a recorded run on all three. The Action's live-service path is tested on Ubuntu
+  only.
 - **Alpha.** The interface may change before 1.0. Not on PyPI, so install from a clone or
   `uv tool install git+https://github.com/cardohso/goldpass@v0.1.0`.
 
@@ -233,5 +234,8 @@ uv sync
 uv run pytest          # offline: fake HTTP servers and a fake LLM API, no keys
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
+
+CI also runs on Windows and macOS and requires 90% coverage (currently 96%, from `uv run pytest --cov`). See
+[CONTRIBUTING](CONTRIBUTING.md) and [SECURITY](SECURITY.md).
 
 [CHANGELOG](CHANGELOG.md) · [MIT licence](LICENSE)

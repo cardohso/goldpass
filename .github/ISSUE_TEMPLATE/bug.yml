@@ -1,0 +1,27 @@
+name: Bug report
+description: Something goldpass did is wrong, or crashed.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: {required: true}
+  - type: textarea
+    id: repro
+    attributes:
+      label: Smallest way to reproduce it
+      description: A config, a few golden-set lines, and the command. Remove any API keys.
+      render: shell
+    validations: {required: true}
+  - type: input
+    id: version
+    attributes:
+      label: goldpass version and Python
+      placeholder: "goldpass 0.1.0, Python 3.12, macOS"
+    validations: {required: true}
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or traceback
+      render: text

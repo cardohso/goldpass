@@ -35,8 +35,16 @@ All notable changes to this project are documented here. The format follows
   many workers there are, and a `Retry-After` from one worker pauses all of them. Results stay
   in golden-set order. The judge cache is thread-safe. The default is still one at a time.
 
+- CI on Windows and macOS as well as Linux; the Action is exercised on all three; coverage is
+  measured, shown in the job summary and must stay at or above 90%. `.gitattributes` fixes line
+  endings to LF.
+- CONTRIBUTING, SECURITY, issue and pull-request templates, Dependabot for Actions and Python.
+
 ### Fixed
 
+- Credentials and query strings in an HTTP system's URL (`?key=${API_KEY}`) were printed in
+  the log and saved to the results, answers and report files. Saved and printed system names
+  now show the URL without credentials, query or fragment. Found while writing SECURITY.md.
 - "1 items were not scored" in the report.
 - Judges that return a bare JSON list for claims or verdicts are accepted.
 - Planted number errors skip numbers after lower-bound conditions ("greater than 250 km/h"),
