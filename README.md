@@ -33,10 +33,15 @@ From a clone, against the bundled fake RAG service (no keys, no network):
 
 ```bash
 git clone https://github.com/cardohso/goldpass && cd goldpass && uv sync
+
+# a healthy fake service: the gate passes, exit code 0
 uv run python examples/fake_rag/server.py --port 8765 &
-uv run goldpass run --config examples/fake_rag/goldpass.yaml                      # PASSED, exit 0
+uv run goldpass run --config examples/fake_rag/goldpass.yaml
+
+# a regressed one: the gate fails, exit code 1
 uv run python examples/fake_rag/server.py --port 8766 --mode regressed &
-uv run goldpass run --config examples/fake_rag/goldpass.yaml --url http://127.0.0.1:8766/ask  # FAILED, exit 1
+uv run goldpass run --config examples/fake_rag/goldpass.yaml \
+  --url http://127.0.0.1:8766/ask
 ```
 
 In your own repo's CI:
