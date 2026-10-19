@@ -42,7 +42,8 @@ class Slow(BaseHTTPRequestHandler):
             cls.starts.append(time.monotonic())
             cls.fail_first -= 1
             reject = cls.fail_first >= 0
-        time.sleep(DELAY)
+        if not reject:
+            time.sleep(DELAY)  # a 429 comes back at once, before any other worker can finish
         with cls.lock:
             cls.running -= 1
         if reject:
@@ -136,11 +137,13 @@ def test_retry_after_pauses_every_worker(
     cfg = write_config(project, url, "  concurrency: 4\n")
     assert main(["run", "--config", str(cfg)]) == ExitCode.OK
     first, *rest = sorted(server.starts)
-    # while one worker was told to wait 1 s, no other worker started a new request
-    # (the 3 others started with the first; later requests are all >= ~1 s after it)
-    late = [s for s in rest if s - first > 0.5]
+    # 4 workers start together; one gets 429 + Retry-After: 1 at once. Every request after those
+    # first 4, including those of workers that were still busy, waits out the deferral.
     assert len(server.starts) == N + 1
-    assert all(s - first >= 0.95 for s in late) and len(late) >= N - 3 - 1
+    initial = [s for s in rest if s - first < 0.5]
+    later = [s for s in rest if s - first >= 0.5]
+    assert len(initial) == 3 and len(later) == N + 1 - 4
+    assert min(later) - first >= 0.95
 
 
 # judges

@@ -76,8 +76,9 @@ judging: {concurrency: 8}
 - The pace is **shared by all workers** of one endpoint or judge: with `requests_per_minute: 30`
   starts are 2 s apart whether there are 1 or 8 workers. More workers hide latency (a slow
   endpoint, long judge calls), not the rate limit.
-- A `Retry-After` from one worker **pauses all of them** for that long, so a 429 does not turn
-  into seven more 429s.
+- A `Retry-After` from one worker **pauses all of them** for that long: no worker starts a new
+  request until it is over, so a 429 does not turn into seven more. Requests already in flight
+  are not interrupted.
 - Results always come back in golden-set order and do not depend on timing.
 - A Python `system` function with `concurrency` above 1 must be thread-safe.
 
