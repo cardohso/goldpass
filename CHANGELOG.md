@@ -6,10 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-19
+
+First release. Alpha: the interface may still change before 1.0.
+
 ### Added
 
-- Project skeleton: package layout, `goldpass` CLI stub with `run`, `validate` and `compare`
-  subcommands, documented exit codes, CI on Python 3.11 and 3.12.
+- `goldpass` CLI with `run`, `validate` and `compare`, documented exit codes (0 pass, 1 gate
+  failed, 2 bad input, 3 system or judge unreachable). CI on Python 3.11 and 3.12.
 - Golden-set format: JSONL with a JSON Schema (Draft 2020-12) shipped in the package, fields
   `id`, `question`, `expected` (`answer` | `refuse`), `reference_answer`, `gold_passage_ids`,
   `source_doc_ids`, `tags`, `notes`, `metadata`.
@@ -72,3 +76,6 @@ All notable changes to this project are documented here. The format follows
 - README and docs: `docs/configuration.md` (golden set, `goldpass.yaml`, thresholds, CLI, exit
   codes, Action), `docs/metrics.md` (definitions and skip rules), `docs/judges.md` (judge
   metrics, same-family guard, free-tier behaviour).
+
+[Unreleased]: https://github.com/cardohso/goldpass/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/cardohso/goldpass/releases/tag/v0.1.0

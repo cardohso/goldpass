@@ -20,7 +20,7 @@ It is the generic half of the evaluation gate in
 [rail-regulation-rag](https://github.com/cardohso/rail-regulation-rag), and it reproduces that
 gate's numbers exactly (see [below](#parity-with-the-system-it-came-from)).
 
-> **Status: 0.1.0.dev0, pre-release.** Not on PyPI yet. Read [Limitations](#limitations) before
+> **Status: 0.1.0, alpha.** Not on PyPI yet. Read [Limitations](#limitations) before
 > relying on it.
 
 ## Quickstart
@@ -184,7 +184,8 @@ What is synthetic, untested or simplified, stated plainly:
 - **JSON over HTTP only.** No streaming responses, no auth flows beyond static headers.
 - **Platforms.** CI runs on Ubuntu (Python 3.11 and 3.12), and local development was on macOS.
   Windows is untested.
-- **Pre-release.** Not on PyPI, so install from a clone or `git+https://github.com/cardohso/goldpass`.
+- **Alpha.** The interface may change before 1.0. Not on PyPI, so install from a clone or
+  `uv tool install git+https://github.com/cardohso/goldpass@v0.1.0`.
 
 ## Next steps
 

@@ -1,6 +1,6 @@
 [project]
 name = "goldpass"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Regression tests for RAG systems: a golden set, deterministic retrieval and grounding metrics, and a CI gate."
 readme = "README.md"
 license = "MIT"
@@ -8,7 +8,7 @@ authors = [{ name = "João Pedro Cardoso" }]
 requires-python = ">=3.11"
 keywords = ["rag", "evaluation", "llm", "ci", "regression-testing", "github-actions"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.11",
