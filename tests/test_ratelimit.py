@@ -65,7 +65,7 @@ def test_real_threads_never_start_faster_than_the_limit() -> None:
     """The guarantee is a floor, not even spacing: a loaded machine may oversleep one thread
     and release the next right after it. So the k-th start (in time order) can never come
     before t0 + k * interval."""
-    interval = 0.02
+    interval = 0.05
     rl = RateLimiter(interval)
     starts: list[float] = []
     lock = threading.Lock()
@@ -82,6 +82,8 @@ def test_real_threads_never_start_faster_than_the_limit() -> None:
     for t in threads:
         t.join()
     starts.sort()
-    slack = 0.005
+    # Python 3.12's time.monotonic() ticks every ~15.6 ms on Windows, so allow two ticks. A
+    # limiter that did not space calls at all would miss this floor by hundreds of ms.
+    slack = 0.035
     assert [k for k, s in enumerate(starts) if s < t0 + k * interval - slack] == []
     assert starts[-1] - t0 >= 7 * interval - slack  # so 8 calls take at least 7 intervals

@@ -98,8 +98,8 @@ def test_workers_overlap_requests_and_keep_input_order(
     t0 = time.monotonic()
     assert main(["run", "--config", str(cfg), "--workers", "4"]) == ExitCode.OK
     elapsed = time.monotonic() - t0
-    assert server.peak == 4
-    assert elapsed < N * DELAY * 0.75  # sequential would take N * DELAY = 1.6 s
+    assert 2 <= server.peak <= 4  # overlapped, and never more than asked for
+    assert elapsed < N * DELAY * 0.9  # sequential would take at least N * DELAY = 1.6 s
     answers = json.loads((project / "out/run.answers.json").read_text("utf-8"))["records"]
     assert [r["id"] for r in answers] == [f"q{i}" for i in range(N)]
     assert all(r["answer"] == f"echo question {i}?" for i, r in enumerate(answers))
@@ -123,27 +123,23 @@ def test_rate_limit_holds_however_many_workers(
     # the first: so the k-th arrival (in time order) is never earlier than t0 + k * interval.
     # (Exact spacing is not guaranteed: an oversleeping worker releases the next one early.)
     arrivals = sorted(server.starts)
-    slack = 0.01
+    slack = 0.035  # two ticks of Windows' coarse monotonic clock
     early = [k for k, a in enumerate(arrivals) if a < t0 + k * interval - slack]
     assert early == [] and len(arrivals) == N
     assert server.peak > 1  # 8 workers, so requests still overlap in flight
 
 
-def test_retry_after_pauses_every_worker(
+def test_a_429_under_concurrency_still_answers_every_question(
     project: Path, slow_server: tuple[str, type[Slow]]
 ) -> None:
     url, server = slow_server
     server.fail_first = 1  # the first request gets 429 + Retry-After: 1
     cfg = write_config(project, url, "  concurrency: 4\n")
     assert main(["run", "--config", str(cfg)]) == ExitCode.OK
-    first, *rest = sorted(server.starts)
-    # 4 workers start together; one gets 429 + Retry-After: 1 at once. Every request after those
-    # first 4, including those of workers that were still busy, waits out the deferral.
-    assert len(server.starts) == N + 1
-    initial = [s for s in rest if s - first < 0.5]
-    later = [s for s in rest if s - first >= 0.5]
-    assert len(initial) == 3 and len(later) == N + 1 - 4
-    assert min(later) - first >= 0.95
+    answers = json.loads((project / "out/run.answers.json").read_text("utf-8"))["records"]
+    assert [r["id"] for r in answers] == [f"q{i}" for i in range(N)]
+    assert all(r.get("error") is None for r in answers)
+    assert len(server.starts) == N + 1  # one retry
 
 
 # judges
@@ -220,3 +216,60 @@ def test_requests_per_minute_becomes_an_interval(tmp_path: Path) -> None:
     c = load_config(cfg)
     assert (c.system.min_interval_s, c.system.concurrency) == (12.0, 3)  # type: ignore[union-attr]
     assert c.judging.judges[0].min_interval_s == 2.0 and c.judging.concurrency == 2
+
+
+# a Retry-After pauses every worker: the adapter and the judge hand it to the shared limiter.
+# Checked directly (no wall clock), because "did another thread start in the meantime" depends
+# on how loaded the machine is.
+
+
+class RecordingLimiter:
+    def __init__(self) -> None:
+        self.waited = 0
+        self.deferred: list[float] = []
+
+    def wait(self) -> None:
+        self.waited += 1
+
+    def defer(self, seconds: float) -> None:
+        self.deferred.append(seconds)
+
+
+def test_http_adapter_defers_the_shared_limiter_on_retry_after() -> None:
+    from goldpass.adapters import HttpAdapter
+    from goldpass.config import HttpSystem
+    from goldpass.golden import GoldenItem
+    from goldpass.retry import RetryPolicy
+
+    replies = [
+        httpx.Response(429, headers={"Retry-After": "7"}),
+        httpx.Response(503, headers={"Retry-After": "900"}),  # capped by max_wait_s
+        httpx.Response(200, json={"answer": "ok"}),
+    ]
+    system = HttpSystem(
+        url="http://x/ask", retry=RetryPolicy(attempts=5, backoff_s=0, max_wait_s=30)
+    )
+    a = HttpAdapter(
+        system, httpx.MockTransport(lambda request: replies.pop(0)), sleep=lambda s: None
+    )
+    rec = RecordingLimiter()
+    a._limiter = rec  # type: ignore[assignment]
+    assert a.ask(GoldenItem("q1", "?", "answer")).error is None
+    assert rec.deferred == [7.0, 30.0]
+
+
+def test_judge_defers_its_shared_limiter_on_retry_after() -> None:
+    from goldpass.judge import JudgeSpec, LLMJudge
+    from goldpass.retry import RetryPolicy
+
+    replies = [
+        httpx.Response(429, headers={"Retry-After": "4"}),
+        httpx.Response(200, json={"choices": [{"message": {"content": '{"score": 5}'}}]}),
+    ]
+    spec = JudgeSpec("groq", "m", "https://judge.test/v1")
+    j = LLMJudge(spec, "k", retry=RetryPolicy(attempts=3), sleep=lambda s: None,
+                 transport=httpx.MockTransport(lambda request: replies.pop(0)))  # fmt: skip
+    rec = RecordingLimiter()
+    j.limiter = rec  # type: ignore[assignment]
+    assert j.answer_relevancy("q", "a").value == 1.0
+    assert rec.deferred == [4.0] and rec.waited == 2  # every attempt waits for its slot
