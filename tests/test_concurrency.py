@@ -114,11 +114,18 @@ def test_rate_limit_holds_however_many_workers(
     project: Path, slow_server: tuple[str, type[Slow]]
 ) -> None:
     url, server = slow_server
-    cfg = write_config(project, url, "  concurrency: 8\n  min_interval_s: 0.15\n")
+    interval = 0.15
+    cfg = write_config(project, url, f"  concurrency: 8\n  min_interval_s: {interval}\n")
+    t0 = time.monotonic()
     assert main(["run", "--config", str(cfg)]) == ExitCode.OK
-    gaps = [b - a for a, b in zip(sorted(server.starts), sorted(server.starts)[1:], strict=False)]
-    assert min(gaps) > 0.1  # 8 workers, but request starts are 0.15 s apart
-    assert server.peak > 1  # and they still overlap in flight
+    # A request cannot arrive before it was sent, and the k-th send is at least k intervals after
+    # the first: so the k-th arrival (in time order) is never earlier than t0 + k * interval.
+    # (Exact spacing is not guaranteed: an oversleeping worker releases the next one early.)
+    arrivals = sorted(server.starts)
+    slack = 0.01
+    early = [k for k, a in enumerate(arrivals) if a < t0 + k * interval - slack]
+    assert early == [] and len(arrivals) == N
+    assert server.peak > 1  # 8 workers, so requests still overlap in flight
 
 
 def test_retry_after_pauses_every_worker(

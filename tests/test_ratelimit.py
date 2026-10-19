@@ -61,9 +61,12 @@ def test_defer_pushes_everyone_back() -> None:
     assert clock.sleeps == [30.0, 5.0]
 
 
-def test_waiters_get_distinct_slots_under_real_threads() -> None:
-    """8 threads at 20 ms spacing: starts are spread over at least 7 intervals."""
-    rl = RateLimiter(0.02)
+def test_real_threads_never_start_faster_than_the_limit() -> None:
+    """The guarantee is a floor, not even spacing: a loaded machine may oversleep one thread
+    and release the next right after it. So the k-th start (in time order) can never come
+    before t0 + k * interval."""
+    interval = 0.02
+    rl = RateLimiter(interval)
     starts: list[float] = []
     lock = threading.Lock()
 
@@ -73,11 +76,12 @@ def test_waiters_get_distinct_slots_under_real_threads() -> None:
             starts.append(time.monotonic())
 
     threads = [threading.Thread(target=work) for _ in range(8)]
+    t0 = time.monotonic()
     for t in threads:
         t.start()
     for t in threads:
         t.join()
     starts.sort()
-    gaps = [b - a for a, b in zip(starts, starts[1:], strict=False)]
-    assert min(gaps) > 0.012  # none start together (timer slack allowed)
-    assert starts[-1] - starts[0] >= 0.13
+    slack = 0.005
+    assert [k for k, s in enumerate(starts) if s < t0 + k * interval - slack] == []
+    assert starts[-1] - t0 >= 7 * interval - slack  # so 8 calls take at least 7 intervals
