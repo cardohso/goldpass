@@ -56,7 +56,9 @@ how you see the bias.
 
 ## Free tiers
 
-- One call at a time. Each judged answer costs up to 3 calls (claims, verdicts, relevancy).
+- One call at a time by default. Each judged answer costs up to 3 calls (claims, verdicts,
+  relevancy). For larger sets set `judging.concurrency` and a per-judge `requests_per_minute`
+  (or `min_interval_s`); the pace is shared by all workers, and a `Retry-After` pauses them all.
 - 408/425/429/5xx and connection errors are retried with exponential backoff, honouring
   `Retry-After`. Auth and other 4xx errors fail at once.
 - Every successful reply is cached in one SQLite file, keyed by the full request plus a prompt

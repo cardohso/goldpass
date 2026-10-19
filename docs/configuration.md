@@ -41,7 +41,9 @@ system:                              # one of: http, python, replay
   headers: {Authorization: "Bearer ${RAG_TOKEN}"}
   body: {query: "{question}", top_k: 5}    # {question} and {id} are filled in
   timeout_s: 60
-  min_interval_s: 0                  # pause between requests for rate-limited endpoints
+  min_interval_s: 0                  # shared pace: at least this long between request starts
+  # requests_per_minute: 5           # the same thing, the other way round (not both)
+  concurrency: 1                     # questions in flight at once
   retry: {attempts: 5, backoff_s: 1, max_wait_s: 120}
   fields:                            # dotted paths into the response; defaults shown
     answer: answer
@@ -55,7 +57,29 @@ system:                              # one of: http, python, replay
 
 generator: {model: gemini-2.5-flash} # or {family: google}; only used by the judge guard
 judges: []                           # see judges.md
+judging: {concurrency: 1}            # answers judged at once, per judge
 ```
+
+### Speed and rate limits
+
+Calls run one at a time by default, because free-tier rate limits, not latency, are the limit.
+For larger golden sets, raise `concurrency` (or pass `--workers N`) and let a shared pace keep
+the request rate legal:
+
+```yaml
+system: {type: http, url: ..., concurrency: 8, requests_per_minute: 30}
+judges:
+  - {provider: groq, model: openai/gpt-oss-120b, requests_per_minute: 25}
+judging: {concurrency: 8}
+```
+
+- The pace is **shared by all workers** of one endpoint or judge: with `requests_per_minute: 30`
+  starts are 2 s apart whether there are 1 or 8 workers. More workers hide latency (a slow
+  endpoint, long judge calls), not the rate limit.
+- A `Retry-After` from one worker **pauses all of them** for that long, so a 429 does not turn
+  into seven more 429s.
+- Results always come back in golden-set order and do not depend on timing.
+- A Python `system` function with `concurrency` above 1 must be thread-safe.
 
 Paths like `data.sources.0.id` walk into objects and lists. A path that is missing from the
 response means "not reported", and the metrics that need it are skipped. A list of bare strings

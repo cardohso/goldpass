@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import threading
 from collections import Counter
 from collections.abc import Callable, Sequence
 from dataclasses import asdict
@@ -23,22 +24,32 @@ from goldpass.config import Generator
 from goldpass.golden import GoldenItem
 from goldpass.judging import JUDGE_METRICS, JudgeRun
 from goldpass.metrics import ItemScore, aggregate, by_document, by_tag, mean_of, score_item
+from goldpass.parallel import ordered_map
 from goldpass.record import Record
 
 Log = Callable[[str], None]
 
 
-def collect(items: Sequence[GoldenItem], adapter: Adapter, log: Log | None = None) -> list[Record]:
-    """One question at a time on purpose: free-tier rate limits, not latency, are the limit."""
-    records = []
-    for n, item in enumerate(items, start=1):
+def collect(
+    items: Sequence[GoldenItem], adapter: Adapter, log: Log | None = None, workers: int = 1
+) -> list[Record]:
+    """Ask every question. One at a time by default, because free-tier rate limits, not
+    latency, are the limit; `workers` > 1 overlaps requests (the adapter keeps the pace)."""
+    done = 0
+    lock = threading.Lock()
+
+    def ask(item: GoldenItem) -> Record:
+        nonlocal done
         r = adapter.ask(item)
-        records.append(r)
         if log:
             status = f"error: {r.error}" if r.error else ("refused" if r.refused else "answered")
             took = f" in {r.latency_s:.2f}s" if r.latency_s is not None else ""
-            log(f"[{n:>{len(str(len(items)))}}/{len(items)}] {item.id} {status}{took}")
-    return records
+            with lock:
+                done += 1
+                log(f"[{done:>{len(str(len(items)))}}/{len(items)}] {item.id} {status}{took}")
+        return r
+
+    return ordered_map(ask, items, workers)
 
 
 def write_answers(path: Path, system: str, records: Sequence[Record]) -> None:

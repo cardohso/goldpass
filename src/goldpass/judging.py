@@ -17,10 +17,14 @@ from goldpass.cache import Cache, DiskCache, NoCache
 from goldpass.config import ConfigError, Judging
 from goldpass.golden import GoldenItem
 from goldpass.judge import Judge, JudgeError, LLMJudge
+from goldpass.parallel import ordered_map
 from goldpass.record import Record
 
 Log = Callable[[str], None]
 JUDGE_METRICS = ("faithfulness", "answer_relevancy")
+
+# (item id, scores, details, notes, judge failed)
+Outcome = tuple[str, dict[str, float], dict[str, object], list[str], bool]
 
 TRANSPORT: httpx.BaseTransport | None = None  # tests swap in a fake API here
 
@@ -71,19 +75,33 @@ def make_judges(
 
 
 def judge_records(
-    judge: Judge, items: Sequence[GoldenItem], records: Sequence[Record], log: Log | None = None
+    judge: Judge,
+    items: Sequence[GoldenItem],
+    records: Sequence[Record],
+    log: Log | None = None,
+    workers: int = 1,
 ) -> JudgeRun:
-    """Judge 'answer' items the system answered. One call at a time: free-tier rate limits."""
+    """Judge 'answer' items the system answered. One call at a time by default: free-tier
+    rate limits; `workers` > 1 overlaps items (the judge's rate limiter keeps the pace)."""
     run = JudgeRun(judge.name, judge.family)
     by_id = {r.id: r for r in records}
-    for item in items:
-        r = by_id.get(item.id)
-        if item.expected != "answer" or r is None or r.error or r.refused:
-            continue
+    todo = [
+        (item, by_id[item.id])
+        for item in items
+        if item.expected == "answer"
+        and item.id in by_id
+        and not by_id[item.id].error
+        and not by_id[item.id].refused
+    ]
+
+    def one(
+        pair: tuple[GoldenItem, Record],
+    ) -> tuple[str, dict[str, float], dict[str, object], list[str], bool]:
+        item, r = pair
         notes: list[str] = []
         scores: dict[str, float] = {}
         details: dict[str, object] = {}
-        run.attempted += 1
+        failed = False
         try:
             texts = [p.text for p in r.contexts or ()]
             if not texts:
@@ -101,10 +119,15 @@ def judge_records(
             scores["answer_relevancy"] = rel.value
             details["answer_relevancy"] = dict(rel.detail)
         except JudgeError as e:
-            run.failed += 1
+            failed = True
             notes.append(f"judge {judge.name} failed: {e}")
         if log:
             shown = " ".join(f"{k}={v:.2f}" for k, v in scores.items()) or "; ".join(notes)
             log(f"  {judge.name} {item.id}: {shown}")
-        run.scores[item.id], run.details[item.id], run.notes[item.id] = scores, details, notes
+        return item.id, scores, details, notes, failed
+
+    for item_id, scores, details, notes, failed in ordered_map(one, todo, workers):
+        run.attempted += 1
+        run.failed += failed
+        run.scores[item_id], run.details[item_id], run.notes[item_id] = scores, details, notes
     return run

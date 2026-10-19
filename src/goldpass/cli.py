@@ -92,6 +92,8 @@ def _config(args: argparse.Namespace) -> Config:
         raise ConfigError("no system to test: pass --config, --url, --python or --replay")
     if args.k is not None and args.k < 1:
         raise ConfigError("-k: must be at least 1")
+    if args.workers is not None and args.workers < 1:
+        raise ConfigError("--workers: must be at least 1")
     golden = args.golden or (cfg.golden if cfg else None)
     if golden is None:
         raise ConfigError("no golden set: pass --golden or set 'golden' in the config")
@@ -115,6 +117,17 @@ def _config(args: argparse.Namespace) -> Config:
         baseline=args.baseline or base.baseline,
         audit_sentences=base.audit_sentences,
     )
+
+
+def _workers(args: argparse.Namespace, cfg: Config) -> int:
+    """Questions in flight at once: --workers, else the system's `concurrency`."""
+    if args.workers:
+        return int(args.workers)
+    return int(getattr(cfg.system, "concurrency", 1))
+
+
+def _judge_workers(args: argparse.Namespace, cfg: Config) -> int:
+    return int(args.workers or cfg.judging.concurrency)
 
 
 def _print_metrics(result: dict[str, Any]) -> None:
@@ -229,7 +242,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     log(f"goldpass {__version__}: {len(items)} questions -> {system_name}")
     try:
-        records = collect(items, adapter, log)
+        records = collect(items, adapter, log, _workers(args, cfg))
     finally:
         if isinstance(adapter, HttpAdapter):
             adapter.close()
@@ -237,7 +250,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     runs: list[JudgeRun] = []
     for judge in judges:
         log(f"judging with {judge.name} ({judge.family or 'unknown family'})")
-        runs.append(judge_records(judge, items, records, log))
+        runs.append(judge_records(judge, items, records, log, _judge_workers(args, cfg)))
         judge.close()
     if judges:
         cache = judges[0].cache
@@ -310,7 +323,7 @@ def cmd_judge_audit(args: argparse.Namespace) -> int:
         _err(f"cannot set up the system under test: {type(e).__name__}: {e}")
         return ExitCode.RUNTIME
     try:
-        records = collect(items, adapter, log)
+        records = collect(items, adapter, log, _workers(args, cfg))
     finally:
         if isinstance(adapter, HttpAdapter):
             adapter.close()
@@ -335,7 +348,9 @@ def cmd_judge_audit(args: argparse.Namespace) -> int:
     scores = []
     for judge in judges:
         log(f"auditing {judge.name} ({judge.family or 'unknown family'})")
-        scores.append(score_judge(judge, items, records, perturbations, log))
+        scores.append(
+            score_judge(judge, items, records, perturbations, log, _judge_workers(args, cfg))
+        )
         judge.close()
     generator = {"model": cfg.generator.model, "family": cfg.generator.family}
     result = audit_result(adapter.name, generator, records, perturbations, scores)
@@ -372,6 +387,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--generator", metavar="MODEL", help="the system's model, for the judge guard")
     run.add_argument("--no-judge", action="store_true", help="skip LLM judges: no API calls")
     run.add_argument("--no-cache", action="store_true", help="do not read or write the judge cache")
+    run.add_argument("--workers", type=int, help="questions and judged answers in flight at once")
     run.add_argument("--offline", action="store_true",
                      help="judge only from the cache: no API calls, no keys needed")  # fmt: skip
     run.add_argument("--allow-same-family", action="store_true",
@@ -396,6 +412,7 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--out", type=Path, help="audit JSON (default: next to the config's out)")
     audit.add_argument("--generator", metavar="MODEL", help="the model that wrote the answers")
     audit.add_argument("--no-cache", action="store_true", help="do not use the judge cache")
+    audit.add_argument("--workers", type=int, help="judged answers in flight at once")
     audit.add_argument("--summary", type=Path, help="append the Markdown report here")
     audit.add_argument("--dry-run", action="store_true", help="list planted errors; no judge calls")
     audit.add_argument("--offline", action="store_true",

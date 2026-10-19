@@ -29,6 +29,12 @@ All notable changes to this project are documented here. The format follows
 - `examples/rail/audit/`: a real audit of Groq `openai/gpt-oss-120b` and Gemini
   `gemini-3.5-flash-lite` on recorded rail answers, with the judge cache, reproducible offline.
 
+- Concurrency, opt-in: `system.concurrency`, `judging.concurrency` and `--workers` overlap
+  questions and judge calls on threads. A shared `RateLimiter` (`min_interval_s` or
+  `requests_per_minute`, on systems and on each judge) keeps the request rate legal however
+  many workers there are, and a `Retry-After` from one worker pauses all of them. Results stay
+  in golden-set order. The judge cache is thread-safe. The default is still one at a time.
+
 ### Fixed
 
 - "1 items were not scored" in the report.

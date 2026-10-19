@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -22,6 +23,7 @@ from typing import Any, Protocol
 import httpx
 
 from goldpass.cache import Cache, NoCache, cache_key
+from goldpass.ratelimit import RateLimiter
 from goldpass.retry import GaveUp, RetryableError, RetryPolicy, call_with_retry, parse_retry_after
 
 PROMPT_VERSION = "2026-10-19.1"  # bump when prompts change: invalidates cached verdicts
@@ -100,6 +102,7 @@ class JudgeSpec:
     json_mode: bool = True  # send response_format=json_object; turn off if a provider rejects it
     max_tokens: int = 4096  # reasoning models spend part of this on hidden reasoning
     timeout_s: float = 120.0
+    min_interval_s: float = 0.0  # shared by all workers: 2.0 means at most 30 requests a minute
     extra_body: Mapping[str, Any] = field(default_factory=dict)  # e.g. {reasoning_effort: low}
 
     @property
@@ -134,6 +137,7 @@ class LLMJudge:
         sleep: Callable[[float], None] = time.sleep,
         log: Callable[[str], None] | None = None,
         offline: bool = False,
+        clock: Callable[[], float] = time.monotonic,
     ):
         self.offline = offline  # answer only from the cache; a miss is an error, never a call
         self.spec = spec
@@ -147,6 +151,8 @@ class LLMJudge:
         self._sleep = sleep
         self._log = log
         self.calls = 0  # requests actually sent (cache misses)
+        self._calls_lock = threading.Lock()
+        self.limiter = RateLimiter(spec.min_interval_s, clock, sleep)
 
     def close(self) -> None:
         self._client.close()
@@ -159,14 +165,16 @@ class LLMJudge:
         url = self.spec.base_url.rstrip("/") + "/chat/completions"
 
         def call() -> httpx.Response:
+            self.limiter.wait()
             try:
                 resp = self._client.post(url, json=payload)
             except httpx.TransportError as e:
                 raise RetryableError(f"{type(e).__name__}: {e}") from e
             if resp.status_code in RETRY_STATUS:
-                raise RetryableError(
-                    f"HTTP {resp.status_code}", parse_retry_after(resp.headers.get("Retry-After"))
-                )
+                retry_after = parse_retry_after(resp.headers.get("Retry-After"))
+                if retry_after:  # one worker was told to back off: all of them are
+                    self.limiter.defer(min(retry_after, self.retry.max_wait_s))
+                raise RetryableError(f"HTTP {resp.status_code}", retry_after)
             return resp
 
         def on_retry(attempt: int, wait: float, e: RetryableError) -> None:
@@ -177,7 +185,8 @@ class LLMJudge:
             resp = call_with_retry(call, self.retry, self._sleep, on_retry)
         except GaveUp as e:
             raise JudgeError(str(e)) from e
-        self.calls += 1
+        with self._calls_lock:
+            self.calls += 1
         if resp.status_code >= 400:
             raise JudgeError(f"HTTP {resp.status_code}: {resp.text[:300]}")
         try:

@@ -14,18 +14,34 @@ SPEC = JudgeSpec("groq", "openai/gpt-oss-120b", "https://judge.test/v1", family=
 CONTEXTS = ["The stationary noise limit for EMUs is 65 dB", "Measured at 7,5 m from the track"]
 
 
+class FakeClock:
+    """Sleeping advances the clock, as it does in real life."""
+
+    def __init__(self) -> None:
+        self.now = 1000.0
+        self.waits: list[float] = []
+
+    def __call__(self) -> float:
+        return self.now
+
+    def sleep(self, seconds: float) -> None:
+        self.waits.append(seconds)
+        self.now += seconds
+
+
 def judge(llm: FakeLLM, tmp_path: Path | None = None, **kw: object) -> tuple[LLMJudge, list[float]]:
-    waits: list[float] = []
+    clock = FakeClock()
     cache = DiskCache(tmp_path / "c.sqlite") if tmp_path else None
     j = LLMJudge(
         SPEC,
         "k3y",
         cache=cache,
         transport=httpx.MockTransport(llm),
-        sleep=waits.append,
+        sleep=clock.sleep,
+        clock=clock,
         **kw,  # type: ignore[arg-type]
     )
-    return j, waits
+    return j, clock.waits
 
 
 @pytest.mark.parametrize(

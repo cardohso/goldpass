@@ -33,6 +33,7 @@ class HttpSystem:
     body: Any = field(default_factory=lambda: {"question": "{question}"})
     timeout_s: float = 60.0
     min_interval_s: float = 0.0  # pause between requests, for rate-limited endpoints
+    concurrency: int = 1  # questions in flight at once (the pace above is shared by all)
     fields: FieldMap = field(default_factory=FieldMap)
     retry: RetryPolicy = field(default_factory=RetryPolicy)
 
@@ -41,6 +42,7 @@ class HttpSystem:
 class PythonSystem:
     target: str  # "package.module:function"
     search_path: Path | None = None  # added to sys.path before importing
+    concurrency: int = 1  # the function must be thread-safe if this is above 1
 
 
 @dataclass(frozen=True)
@@ -63,6 +65,7 @@ class Generator:
 @dataclass(frozen=True)
 class Judging:
     judges: tuple[JudgeSpec, ...] = ()  # the first one is the gating judge
+    concurrency: int = 1  # answers judged at once per judge (each judge's pace is shared)
     cache_dir: Path | None = Path(".goldpass/cache")
     strip_pattern: str | None = r"\s*\[\d+\]"  # citation markers removed before judging
     allow_same_family: bool = False
@@ -165,6 +168,28 @@ def _retry(data: Any, where: str) -> RetryPolicy:
     )
 
 
+def _interval(d: dict[str, Any], where: str) -> float:
+    """Seconds between request starts, from `min_interval_s` or `requests_per_minute`."""
+    if "min_interval_s" in d and "requests_per_minute" in d:
+        raise ConfigError(f"{where}: set min_interval_s or requests_per_minute, not both")
+    if "requests_per_minute" in d:
+        rpm = _typed(d, "requests_per_minute", where, (int, float), 0)
+        if rpm <= 0:
+            raise ConfigError(f"{where}.requests_per_minute: must be positive")
+        return 60.0 / float(rpm)
+    seconds = float(_typed(d, "min_interval_s", where, (int, float), 0.0))
+    if seconds < 0:
+        raise ConfigError(f"{where}.min_interval_s: must not be negative")
+    return seconds
+
+
+def _concurrency(d: dict[str, Any], where: str) -> int:
+    n = _typed(d, "concurrency", where, int, 1)
+    if n < 1:
+        raise ConfigError(f"{where}.concurrency: must be at least 1")
+    return int(n)
+
+
 def parse_generator(data: Any, where: str = "generator") -> Generator:
     d = _section(data, where, {"model", "family"})
     model = _typed(d, "model", where, str, None)
@@ -173,7 +198,7 @@ def parse_generator(data: Any, where: str = "generator") -> Generator:
 
 def parse_judge(data: Any, where: str) -> JudgeSpec:
     keys = {"provider", "model", "base_url", "api_key_env", "family", "json_mode", "max_tokens",
-            "timeout_s", "extra_body"}  # fmt: skip
+            "timeout_s", "extra_body", "min_interval_s", "requests_per_minute"}  # fmt: skip
     d = _section(data, where, keys)
     for key in ("provider", "model"):
         if key not in d:
@@ -194,6 +219,7 @@ def parse_judge(data: Any, where: str) -> JudgeSpec:
         json_mode=_typed(d, "json_mode", where, bool, True),
         max_tokens=_typed(d, "max_tokens", where, int, 4096),
         timeout_s=float(_typed(d, "timeout_s", where, (int, float), 120.0)),
+        min_interval_s=_interval(d, where),
         extra_body=_typed(d, "extra_body", where, dict, {}),
     )
 
@@ -203,7 +229,11 @@ def parse_judging(judges: Any, options: Any, base_dir: Path) -> Judging:
         judges = []
     if not isinstance(judges, list):
         raise ConfigError("judges: expected a list")
-    d = _section(options, "judging", {"cache_dir", "strip_pattern", "allow_same_family", "retry"})
+    d = _section(
+        options,
+        "judging",
+        {"cache_dir", "strip_pattern", "allow_same_family", "retry", "concurrency"},
+    )
     cache_dir = _typed(d, "cache_dir", "judging", str, ".goldpass/cache")
     strip = _typed(d, "strip_pattern", "judging", str, r"\s*\[\d+\]")
     if strip is not None:
@@ -216,6 +246,7 @@ def parse_judging(judges: Any, options: Any, base_dir: Path) -> Judging:
         cache_dir=None if cache_dir is None else base_dir / cache_dir,
         strip_pattern=strip,
         allow_same_family=_typed(d, "allow_same_family", "judging", bool, False),
+        concurrency=_concurrency(d, "judging"),
         retry=_retry(d["retry"], "judging.retry") if "retry" in d else Judging().retry,
     )
 
@@ -236,6 +267,8 @@ def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
                 "body",
                 "timeout_s",
                 "min_interval_s",
+                "requests_per_minute",
+                "concurrency",
                 "fields",
                 "retry",
             },
@@ -249,16 +282,17 @@ def parse_system(data: Any, base_dir: Path, where: str = "system") -> System:
             headers={str(k): _expand(str(v), f"{where}.headers.{k}") for k, v in headers.items()},
             body=d.get("body", {"question": "{question}"}),
             timeout_s=float(_typed(d, "timeout_s", where, (int, float), 60.0)),
-            min_interval_s=float(_typed(d, "min_interval_s", where, (int, float), 0.0)),
+            min_interval_s=_interval(d, where),
+            concurrency=_concurrency(d, where),
             fields=_fields(d.get("fields"), f"{where}.fields"),
             retry=_retry(d.get("retry"), f"{where}.retry"),
         )
     if kind == "python":
-        d = _section(data, where, {"type", "target"})
+        d = _section(data, where, {"type", "target", "concurrency"})
         target = _typed(d, "target", where, str, "")
         if not re.fullmatch(r"[\w.]+:[\w.]+", target):
             raise ConfigError(f"{where}.target: expected 'module:function', got {target!r}")
-        return PythonSystem(target, search_path=base_dir)
+        return PythonSystem(target, search_path=base_dir, concurrency=_concurrency(d, where))
     if kind == "replay":
         d = _section(data, where, {"type", "path", "fields"})
         if "path" not in d:

@@ -20,6 +20,7 @@ import httpx
 from goldpass.config import HttpSystem, PythonSystem, ReplaySystem, System
 from goldpass.golden import GoldenItem
 from goldpass.mapping import FieldMap, MappingError, get_path, to_record
+from goldpass.ratelimit import RateLimiter
 from goldpass.record import Record
 from goldpass.retry import GaveUp, RetryableError, call_with_retry, parse_retry_after
 
@@ -53,6 +54,7 @@ class HttpAdapter:
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
         log: Log | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ):
         self.system = system
         self.name = f"http:{system.method} {system.url}"
@@ -61,16 +63,8 @@ class HttpAdapter:
         )
         self._sleep = sleep
         self._log = log
-        self._clock = time.monotonic
-        self._last: float | None = None
-
-    def _pace(self) -> None:
-        """Keep at least min_interval_s between request starts (e.g. 12 s for 5/minute)."""
-        if self._last is not None and self.system.min_interval_s > 0:
-            wait = self._last + self.system.min_interval_s - self._clock()
-            if wait > 0:
-                self._sleep(wait)
-        self._last = self._clock()
+        # one pace for all workers: at least min_interval_s between request starts
+        self._limiter = RateLimiter(system.min_interval_s, clock, sleep)
 
     def _call(self, body: Any) -> httpx.Response:
         try:
@@ -81,9 +75,10 @@ class HttpAdapter:
         except httpx.TransportError as e:
             raise RetryableError(f"{type(e).__name__}: {e}") from e
         if resp.status_code in RETRY_STATUS:
-            raise RetryableError(
-                f"HTTP {resp.status_code}", parse_retry_after(resp.headers.get("Retry-After"))
-            )
+            retry_after = parse_retry_after(resp.headers.get("Retry-After"))
+            if retry_after:  # one worker was told to back off: all of them are
+                self._limiter.defer(min(retry_after, self.system.retry.max_wait_s))
+            raise RetryableError(f"HTTP {resp.status_code}", retry_after)
         return resp
 
     def ask(self, item: GoldenItem) -> Record:
@@ -93,7 +88,7 @@ class HttpAdapter:
             if self._log:
                 self._log(f"  {item.id}: {e}, retrying in {wait:.1f}s (attempt {attempt + 1})")
 
-        self._pace()  # before the clock starts: pacing is ours, not the system's latency
+        self._limiter.wait()  # before the clock starts: pacing is ours, not the system's latency
         t0 = time.perf_counter()
         try:
             resp = call_with_retry(

@@ -22,6 +22,7 @@ from typing import Any
 from goldpass import __version__
 from goldpass.golden import GoldenItem
 from goldpass.judge import Judge, JudgeError
+from goldpass.parallel import ordered_map
 from goldpass.perturb import Perturbation, context_texts
 from goldpass.record import Record
 from goldpass.stats import mcnemar_exact, wilson
@@ -47,34 +48,48 @@ def score_judge(
     records: Sequence[Record],
     perturbations: Sequence[Perturbation],
     log: Log | None = None,
+    workers: int = 1,
 ) -> JudgeScores:
-    """Faithfulness of every control and every perturbed copy. One call at a time."""
+    """Faithfulness of every control and every perturbed copy. One call at a time by default;
+    `workers` > 1 overlaps them (the judge's rate limiter keeps the pace)."""
     question = {i.id: i.question for i in items}
     by_id = {r.id: r for r in records}
     out = JudgeScores(judge.name, judge.family)
-    for item_id in dict.fromkeys(p.id for p in perturbations):
+
+    def control(item_id: str) -> tuple[str, float | None, str | None]:
         r = by_id[item_id]
-        texts = context_texts(r) or []
         try:
-            f = judge.faithfulness(question[item_id], r.answer, texts)
+            f = judge.faithfulness(question[item_id], r.answer, context_texts(r) or [])
         except JudgeError as e:
-            out.failures.append(f"{item_id} control: {e}")
-            continue
-        if f is not None:
-            out.control[item_id] = f.value
-            if log:
-                log(f"  {judge.name} {item_id} control: {f.value:.2f}")
-    for p in perturbations:
-        value = None
-        if p.id in out.control:
-            try:
-                f = judge.faithfulness(question[p.id], p.answer, context_texts(by_id[p.id]) or [])
-                value = None if f is None else f.value
-            except JudgeError as e:
-                out.failures.append(f"{p.id} {p.kind}: {e}")
-        out.perturbed.append(value)
-        if log and value is not None:
+            return item_id, None, f"{item_id} control: {e}"
+        if f is not None and log:
+            log(f"  {judge.name} {item_id} control: {f.value:.2f}")
+        return item_id, None if f is None else f.value, None
+
+    for item_id, value, failure in ordered_map(
+        control, list(dict.fromkeys(p.id for p in perturbations)), workers
+    ):
+        if failure:
+            out.failures.append(failure)
+        elif value is not None:
+            out.control[item_id] = value
+
+    def perturbed(p: Perturbation) -> tuple[float | None, str | None]:
+        if p.id not in out.control:
+            return None, None
+        try:
+            f = judge.faithfulness(question[p.id], p.answer, context_texts(by_id[p.id]) or [])
+        except JudgeError as e:
+            return None, f"{p.id} {p.kind}: {e}"
+        value = None if f is None else f.value
+        if value is not None and log:
             log(f"  {judge.name} {p.id} {p.kind}: {value:.2f}")
+        return value, None
+
+    for value, failure in ordered_map(perturbed, list(perturbations), workers):
+        if failure:
+            out.failures.append(failure)
+        out.perturbed.append(value)
     return out
 
 

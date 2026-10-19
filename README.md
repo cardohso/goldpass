@@ -190,8 +190,9 @@ accepted it. Numbers after lower-bound conditions are now never changed.
 - **Judges must differ in family from the generator.** LLM judges favour their own family's
   outputs (self-preference bias), so a same-family gating judge is refused unless explicitly
   overridden, and the override is printed on the report. Extra judges are shown side by side.
-- **Built for free tiers.** One call at a time, backoff that honours `Retry-After`, request
-  pacing (`min_interval_s`), and a disk cache so re-runs cost nothing.
+- **Built for free tiers.** One call at a time by default; optional workers share one request
+  pace, and a `Retry-After` pauses all of them. Backoff, and a disk cache so re-runs cost
+  nothing.
 - **Small surface.** Three runtime dependencies (httpx, PyYAML, jsonschema). No LLM SDKs and no
   RAGAS, so nothing breaks when a provider's SDK changes.
 
@@ -209,8 +210,9 @@ What is synthetic, untested or simplified, stated plainly:
   with RAGAS'.
 - **Model families are inferred from model names** with a short pattern list. Unknown names
   are refused rather than guessed; set `family:` for them.
-- **Sequential calls.** Large golden sets on rate-limited APIs are slow by design. There is no
-  concurrency option yet.
+- **Concurrency is opt-in and thread-based.** The default is sequential. Workers overlap
+  latency but never beat an API's rate limit, so a golden set that needs more requests than the
+  limit allows is still slow.
 - **JSON over HTTP only.** No streaming responses, no auth flows beyond static headers.
 - **Platforms.** CI runs on Ubuntu (Python 3.11 and 3.12), and local development was on macOS.
   Windows is untested.
@@ -221,7 +223,6 @@ What is synthetic, untested or simplified, stated plainly:
 
 - Harder planted errors for `judge-audit` (swapped conditions, wrong document cited, partial
   answers), and judge agreement with human labels on a labelled answer set.
-- Concurrency with a per-provider rate limit.
 - An optional RAGAS-backed judge for teams that want RAGAS-comparable numbers.
 - Publish to PyPI.
 

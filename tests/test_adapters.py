@@ -189,8 +189,7 @@ def test_min_interval_paces_requests() -> None:
     clock = FakeClock()
     server = Server(*(httpx.Response(200, json=OK_BODY) for _ in range(3)))
     system = HttpSystem(url="http://rag.test/ask", min_interval_s=12.0)
-    a = HttpAdapter(system, httpx.MockTransport(server), sleep=clock.sleep)
-    a._clock = clock
+    a = HttpAdapter(system, httpx.MockTransport(server), sleep=clock.sleep, clock=clock)
     for _ in range(3):
         a.ask(ITEM)
         clock.now += 2.0  # each request takes 2 s
